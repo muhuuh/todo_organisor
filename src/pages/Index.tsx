@@ -4,6 +4,7 @@ import { Task, TaskBucketType } from "@/types";
 import TaskBucket from "@/components/buckets/TaskBucket";
 import CreateTaskForm from "@/components/forms/CreateTaskForm";
 import VisualSummary from "@/components/charts/VisualSummary";
+import TimeVisualization from "@/components/charts/TimeVisualization";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { Navbar } from "@/components/layout/Navbar";
@@ -182,6 +183,11 @@ const Index = () => {
               allowTimeEstimate
             />
           </div>
+        </section>
+
+        <section className="mb-8">
+          <h2 className="text-xl font-medium mb-4">Time Visualization</h2>
+          <TimeVisualization tasks={tasks} />
         </section>
 
         <section>

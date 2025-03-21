@@ -41,6 +41,7 @@ interface TaskCardProps {
   allowTimeEstimate?: boolean;
   inGroupView?: boolean; // Whether the card is displayed in a group view
   isCompleted?: boolean; // Whether this is displayed in the completed tasks list
+  hideCategory?: boolean; // Whether to hide the category badge
   onDragStart: (e: React.DragEvent, task: Task) => void;
   onDelete: (id: string) => void;
   onArchive: (id: string) => void;
@@ -54,6 +55,7 @@ const TaskCard = ({
   allowTimeEstimate = false,
   inGroupView = false,
   isCompleted = false,
+  hideCategory = false,
   onDragStart,
   onDelete,
   onArchive,
@@ -228,9 +230,12 @@ const TaskCard = ({
             <span className="ml-1">{task.importance}</span>
           </Badge>
 
-          <span className="inline-flex items-center text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-            <Tag className="h-3 w-3 mr-1" /> {task.category}
-          </span>
+          {/* Only show category if not hidden */}
+          {!hideCategory && (
+            <span className="inline-flex items-center text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+              <Tag className="h-3 w-3 mr-1" /> {task.category}
+            </span>
+          )}
 
           {task.time_estimate > 0 && (
             <span className="inline-flex items-center text-xs bg-accent/20 text-accent-foreground px-2 py-0.5 rounded-full">

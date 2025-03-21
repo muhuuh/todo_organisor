@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Check, X, Loader2, RefreshCw } from "lucide-react";
+import { Check, X, Loader2, RefreshCw, RotateCcw } from "lucide-react";
 import { useTaskContext } from "@/context/TaskContext";
 import {
   Card,
@@ -20,6 +20,7 @@ export default function CompletedTasksPage() {
     isLoadingCompleted,
     fetchCompletedTasks,
     deleteTask,
+    unarchiveTask,
   } = useTaskContext();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -133,15 +134,26 @@ export default function CompletedTasksPage() {
                     <div className="space-y-2">
                       {tasks.map((task) => (
                         <div key={task.id} className="relative">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-2 top-2 z-10 h-6 w-6 rounded-full opacity-70 hover:opacity-100"
-                            onClick={() => deleteTask(task.id)}
-                            title="Delete permanently"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
+                          <div className="absolute right-2 top-2 z-10 flex space-x-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 rounded-full opacity-70 hover:opacity-100 bg-blue-50 text-blue-600 hover:bg-blue-100"
+                              onClick={() => unarchiveTask(task.id)}
+                              title="Restore task"
+                            >
+                              <RotateCcw className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 rounded-full opacity-70 hover:opacity-100 bg-red-50 text-red-600 hover:bg-red-100"
+                              onClick={() => deleteTask(task.id)}
+                              title="Delete permanently"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                           <TaskCard
                             task={task}
                             inGroupView={true}
@@ -165,7 +177,9 @@ export default function CompletedTasksPage() {
           {completedTasks.length > 0 && (
             <CardFooter className="flex justify-end">
               <p className="text-sm text-muted-foreground">
-                Click the X button to permanently delete a completed task
+                Use <RotateCcw className="inline h-3 w-3 mx-1" /> to restore
+                tasks or <X className="inline h-3 w-3 mx-1" /> to delete them
+                permanently
               </p>
             </CardFooter>
           )}

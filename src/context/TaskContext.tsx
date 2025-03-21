@@ -18,6 +18,7 @@ interface TaskContextType {
   updateTask: (task: Task) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   archiveTask: (id: string) => Promise<void>;
+  unarchiveTask: (id: string) => Promise<void>;
   moveToBucket: (taskId: string, bucket: TaskBucketType) => Promise<void>;
   updateTimeEstimate: (taskId: string, estimate: number) => Promise<void>;
   toggleTaskCompletion: (taskId: string) => Promise<void>;
@@ -287,6 +288,66 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Unarchive a task (mark as incomplete and restore to active tasks)
+  const unarchiveTask = async (id: string) => {
+    if (!userId) {
+      toast.error("You must be signed in to restore tasks");
+      return;
+    }
+
+    try {
+      const task = completedTasks.find((t) => t.id === id);
+      if (!task) {
+        console.error("Task not found for unarchiving:", id);
+        return;
+      }
+
+      console.log("Unarchiving task:", id);
+
+      // Update the database
+      const { error } = await supabase
+        .from("tasks")
+        .update({
+          is_archived: false,
+          completed: false,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .eq("user_id", userId);
+
+      if (error) {
+        console.error("Error unarchiving task:", error);
+        toast.error(error.message || "Failed to restore task");
+        return;
+      }
+
+      // Create the restored task object with updated fields
+      const restoredTask = {
+        ...task,
+        is_archived: false,
+        completed: false,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Remove from completed tasks list
+      setCompletedTasks((prevTasks) => prevTasks.filter((t) => t.id !== id));
+
+      // Add to active tasks list
+      setTasks((prev) => [restoredTask, ...prev]);
+
+      toast.success("Task restored to active tasks");
+
+      // Refresh both task lists to ensure consistency
+      if (userId) {
+        fetchTasks(userId);
+        fetchCompletedTasks(userId);
+      }
+    } catch (err) {
+      console.error("Error restoring task:", err);
+      toast.error("Failed to restore task");
+    }
+  };
+
   // Move task to a different bucket
   const moveToBucket = async (taskId: string, bucket: TaskBucketType) => {
     if (!userId) {
@@ -445,6 +506,7 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
     updateTask,
     deleteTask,
     archiveTask,
+    unarchiveTask,
     moveToBucket,
     updateTimeEstimate,
     toggleTaskCompletion,

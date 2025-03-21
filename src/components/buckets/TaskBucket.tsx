@@ -88,6 +88,14 @@ const TaskBucket = ({
     {}
   );
 
+  // Get unique category for a group of tasks
+  const getGroupCategory = (tasks: Task[]): string | null => {
+    if (tasks.length === 0) return null;
+
+    const categories = new Set(tasks.map((task) => task.category));
+    return categories.size === 1 ? tasks[0].category : null;
+  };
+
   // Toggle group open/closed state
   const toggleGroup = (groupKey: string) => {
     setOpenGroups((prev) => ({
@@ -151,44 +159,59 @@ const TaskBucket = ({
             {/* Grouped tasks by main task */}
             {Object.entries(groupedTasks)
               .filter(([key]) => key !== "___ungrouped___")
-              .map(([mainTask, tasks]) => (
-                <Collapsible
-                  key={mainTask}
-                  open={openGroups[mainTask]}
-                  className="border rounded-md p-2 mb-3 bg-card"
-                >
-                  <CollapsibleTrigger
-                    className="flex items-center justify-between w-full text-left"
-                    onClick={() => toggleGroup(mainTask)}
+              .map(([mainTask, tasks]) => {
+                const groupCategory = getGroupCategory(tasks);
+
+                return (
+                  <Collapsible
+                    key={mainTask}
+                    open={openGroups[mainTask]}
+                    className="border rounded-md p-2 mb-3 bg-card"
                   >
-                    <div className="font-medium">{mainTask}</div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary">{tasks.length}</Badge>
-                      {openGroups[mainTask] ? (
-                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                      )}
-                    </div>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="mt-2">
-                    {tasks.map((task) => (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
-                        onDragStart={onDragStart}
-                        onDelete={onDelete}
-                        onArchive={onArchive}
-                        onUpdateTimeEstimate={onUpdateTimeEstimate}
-                        onToggleCompletion={onToggleCompletion}
-                        onUpdateImportance={onUpdateImportance}
-                        allowTimeEstimate={true}
-                        inGroupView={true}
-                      />
-                    ))}
-                  </CollapsibleContent>
-                </Collapsible>
-              ))}
+                    <CollapsibleTrigger
+                      className="flex items-center justify-between w-full text-left"
+                      onClick={() => toggleGroup(mainTask)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="font-medium">{mainTask}</div>
+                        {groupCategory && (
+                          <Badge
+                            variant="outline"
+                            className="text-xs bg-secondary/20"
+                          >
+                            {groupCategory}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary">{tasks.length}</Badge>
+                        {openGroups[mainTask] ? (
+                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-2">
+                      {tasks.map((task) => (
+                        <TaskCard
+                          key={task.id}
+                          task={task}
+                          onDragStart={onDragStart}
+                          onDelete={onDelete}
+                          onArchive={onArchive}
+                          onUpdateTimeEstimate={onUpdateTimeEstimate}
+                          onToggleCompletion={onToggleCompletion}
+                          onUpdateImportance={onUpdateImportance}
+                          allowTimeEstimate={true}
+                          inGroupView={true}
+                          hideCategory={groupCategory === task.category}
+                        />
+                      ))}
+                    </CollapsibleContent>
+                  </Collapsible>
+                );
+              })}
           </>
         )}
       </CardContent>
