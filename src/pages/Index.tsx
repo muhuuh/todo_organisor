@@ -3,7 +3,6 @@ import { useTaskContext } from "@/context/TaskContext";
 import { Task, TaskBucketType } from "@/types";
 import TaskBucket from "@/components/buckets/TaskBucket";
 import CreateTaskForm from "@/components/forms/CreateTaskForm";
-import VisualSummary from "@/components/charts/VisualSummary";
 import TimeVisualization from "@/components/charts/TimeVisualization";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -185,14 +184,9 @@ const Index = () => {
           </div>
         </section>
 
-        <section className="mb-8">
+        <section>
           <h2 className="text-xl font-medium mb-4">Time Visualization</h2>
           <TimeVisualization tasks={tasks} />
-        </section>
-
-        <section>
-          <h2 className="text-xl font-medium mb-4">Visual Summary</h2>
-          <VisualSummary tasks={tasks} />
         </section>
       </div>
     </div>

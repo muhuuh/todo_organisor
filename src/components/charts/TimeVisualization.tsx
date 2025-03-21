@@ -3,149 +3,274 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   BarChart,
   Bar,
-  Cell,
   XAxis,
   YAxis,
   Tooltip,
   Legend,
   ResponsiveContainer,
-  Rectangle,
   CartesianGrid,
+  Cell,
 } from "recharts";
+import { useState } from "react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 interface TimeVisualizationProps {
   tasks: Task[];
 }
 
+// More distinct color palette
+const COLORS = [
+  "#4285F4", // Google Blue
+  "#EA4335", // Google Red
+  "#FBBC05", // Google Yellow
+  "#34A853", // Google Green
+  "#8429F6", // Purple
+  "#FF6D01", // Orange
+  "#0AB4FF", // Light Blue
+  "#FF61C6", // Pink
+  "#5F6368", // Grey
+  "#00C49F", // Teal
+];
+
 const TimeVisualization = ({ tasks }: TimeVisualizationProps) => {
-  // Filter tasks to only include Today and Tomorrow buckets with time estimates
+  const [showSubTasks, setShowSubTasks] = useState(false);
+
+  // Filter out any tasks without a bucket (Today/Tomorrow) or time estimate
   const filteredTasks = tasks.filter(
     (task) =>
       (task.bucket === "Today" || task.bucket === "Tomorrow") &&
-      task.time_estimate &&
-      task.time_estimate > 0
+      task.time_estimate
   );
 
+  // If no tasks available, display a message
   if (filteredTasks.length === 0) {
     return (
-      <Card className="col-span-3 animate-fade-in">
+      <Card className="animate-fade-in">
         <CardHeader>
-          <CardTitle className="text-lg">Time Breakdown</CardTitle>
+          <CardTitle className="text-lg">
+            Time Breakdown for Today & Tomorrow
+          </CardTitle>
         </CardHeader>
-        <CardContent className="h-64 flex items-center justify-center">
+        <CardContent className="h-72 flex items-center justify-center">
           <p className="text-muted-foreground">
-            No tasks with time estimates in Today or Tomorrow buckets
+            Add tasks with time estimates to see the visualization
           </p>
         </CardContent>
       </Card>
     );
   }
 
-  // Group tasks by main task and bucket
-  type ChartData = {
-    name: string;
-    mainTask: string;
-    category: string;
-    [bucket: string]: any;
-  };
+  // Group tasks by main task or subtask based on view mode
+  const groupTasks = () => {
+    const taskGroups = new Map<
+      string,
+      {
+        key: string;
+        todayTime: number;
+        tomorrowTime: number;
+        mainTask?: string;
+      }
+    >();
 
-  // Create data structure for the chart
-  const chartData: ChartData[] = [];
+    filteredTasks.forEach((task) => {
+      const key = showSubTasks ? task.sub_task : task.main_task || "Ungrouped";
 
-  // Map to track sub-tasks by main task and bucket
-  const taskMap: Record<string, Record<string, Task[]>> = {};
+      if (!taskGroups.has(key)) {
+        taskGroups.set(key, {
+          key,
+          todayTime: 0,
+          tomorrowTime: 0,
+          mainTask: task.main_task,
+        });
+      }
 
-  // Group tasks by main task and bucket
-  filteredTasks.forEach((task) => {
-    const mainTask = task.main_task || "Ungrouped";
-    const bucket = task.bucket;
-
-    if (!taskMap[mainTask]) {
-      taskMap[mainTask] = {};
-    }
-
-    if (!taskMap[mainTask][bucket]) {
-      taskMap[mainTask][bucket] = [];
-    }
-
-    taskMap[mainTask][bucket].push(task);
-  });
-
-  // Process the grouped tasks to create chart data
-  Object.entries(taskMap).forEach(([mainTask, buckets]) => {
-    const dataEntry: ChartData = {
-      name: mainTask.length > 15 ? `${mainTask.substring(0, 15)}...` : mainTask,
-      mainTask,
-      category:
-        buckets.Today?.[0]?.category || buckets.Tomorrow?.[0]?.category || "",
-      Today: 0,
-      Tomorrow: 0,
-    };
-
-    Object.entries(buckets).forEach(([bucket, tasks]) => {
-      dataEntry[bucket] = tasks.reduce(
-        (sum, task) => sum + (task.time_estimate || 0),
-        0
-      );
+      const group = taskGroups.get(key)!;
+      if (task.bucket === "Today") {
+        group.todayTime += task.time_estimate || 0;
+      } else if (task.bucket === "Tomorrow") {
+        group.tomorrowTime += task.time_estimate || 0;
+      }
     });
 
-    chartData.push(dataEntry);
-  });
-
-  // Colors for the bars
-  const colors = {
-    Today: "#3b82f6", // blue
-    Tomorrow: "#8b5cf6", // purple
+    return Array.from(taskGroups.values()).sort(
+      (a, b) => b.todayTime + b.tomorrowTime - (a.todayTime + a.tomorrowTime)
+    );
   };
 
+  const groupedTasks = groupTasks();
+
+  // Prepare data for the stacked bar chart (simplified approach)
+  const chartData = [
+    {
+      name: "Today",
+      total: filteredTasks
+        .filter((t) => t.bucket === "Today")
+        .reduce((sum, t) => sum + (t.time_estimate || 0), 0),
+      ...Object.fromEntries(
+        groupedTasks.map((group) => [group.key, group.todayTime])
+      ),
+    },
+    {
+      name: "Tomorrow",
+      total: filteredTasks
+        .filter((t) => t.bucket === "Tomorrow")
+        .reduce((sum, t) => sum + (t.time_estimate || 0), 0),
+      ...Object.fromEntries(
+        groupedTasks.map((group) => [group.key, group.tomorrowTime])
+      ),
+    },
+  ];
+
+  // Custom tooltip
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (!active || !payload || payload.length === 0) return null;
+
+    // Filter out zero values
+    const nonZeroPayload = payload.filter((entry: any) => entry.value > 0);
+
+    if (nonZeroPayload.length === 0) return null;
+
+    return (
+      <div className="bg-white p-3 rounded-md border shadow-md text-sm">
+        <p className="font-medium mb-2">{label}</p>
+        <div className="space-y-1.5">
+          {nonZeroPayload.map((entry: any, index: number) => {
+            const taskName = entry.name;
+            const mainTask = groupedTasks.find(
+              (g) => g.key === taskName
+            )?.mainTask;
+            const displayName =
+              showSubTasks && mainTask ? `${taskName} (${mainTask})` : taskName;
+
+            return (
+              <div key={index} className="flex items-center">
+                <span
+                  className="inline-block w-3 h-3 rounded-sm mr-2"
+                  style={{ backgroundColor: entry.fill }}
+                />
+                <span className="mr-2">{displayName}:</span>
+                <span className="font-medium">{entry.value} min</span>
+              </div>
+            );
+          })}
+          <div className="pt-1.5 mt-1.5 border-t text-xs flex justify-between">
+            <span>Total:</span>
+            <span className="font-medium">
+              {nonZeroPayload.reduce(
+                (sum: number, entry: any) => sum + entry.value,
+                0
+              )}{" "}
+              min
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Determine bar keys (what to stack)
+  const barKeys = groupedTasks.map((g) => g.key);
+
   return (
-    <Card className="col-span-3 animate-fade-in">
-      <CardHeader>
-        <CardTitle className="text-lg">
-          Time Breakdown for Today & Tomorrow
-        </CardTitle>
+    <Card className="animate-fade-in bg-background shadow-sm">
+      <CardHeader className="pb-2">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <CardTitle className="text-lg">
+            Time Breakdown for Today & Tomorrow
+          </CardTitle>
+
+          <div className="flex items-center space-x-2">
+            <Label
+              htmlFor="view-mode"
+              className={showSubTasks ? "text-muted-foreground" : "font-medium"}
+            >
+              Main Tasks
+            </Label>
+            <Switch
+              id="view-mode"
+              checked={showSubTasks}
+              onCheckedChange={setShowSubTasks}
+            />
+            <Label
+              htmlFor="view-mode"
+              className={
+                !showSubTasks ? "text-muted-foreground" : "font-medium"
+              }
+            >
+              Subtasks
+            </Label>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent className="h-96">
+      <CardContent className="h-[400px] pt-4">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={chartData}
-            margin={{ top: 20, right: 30, left: 20, bottom: 70 }}
+            margin={{ top: 20, right: 30, left: 30, bottom: 20 }}
+            barSize={80}
+            barGap={0}
+            maxBarSize={100}
           >
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              vertical={false}
+              opacity={0.2}
+            />
             <XAxis
               dataKey="name"
-              angle={-45}
-              textAnchor="end"
-              height={70}
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 14 }}
+              tickMargin={10}
+              axisLine={{ stroke: "#e2e8f0", strokeWidth: 1 }}
             />
             <YAxis
               label={{
                 value: "Time (minutes)",
                 angle: -90,
                 position: "insideLeft",
-                offset: -5,
+                offset: -15,
+                style: { textAnchor: "middle", fill: "#64748b", fontSize: 12 },
               }}
+              axisLine={{ stroke: "#e2e8f0", strokeWidth: 1 }}
+              tick={{ fontSize: 12, fill: "#64748b" }}
             />
-            <Tooltip
-              formatter={(value: number, name: string, props: any) => {
-                return [`${value} minutes`, name];
-              }}
-              labelFormatter={(label: string) => {
-                const fullName =
-                  chartData.find((item) => item.name === label)?.mainTask ||
-                  label;
-                return fullName;
-              }}
+            <Tooltip content={<CustomTooltip />} />
+            <Legend
+              layout="horizontal"
+              verticalAlign="bottom"
+              content={({ payload }) => (
+                <div className="flex flex-wrap justify-center items-center gap-3 mt-2 max-w-full overflow-hidden">
+                  {payload?.map((entry: any, index: number) => {
+                    const name = entry.value;
+                    const displayText =
+                      name.length > 20 ? name.substring(0, 18) + "..." : name;
+
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center text-xs whitespace-nowrap"
+                      >
+                        <span
+                          className="inline-block w-3 h-3 rounded-sm mr-1"
+                          style={{ backgroundColor: entry.color }}
+                        />
+                        <span title={name}>{displayText}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             />
-            <Legend />
-            <Bar dataKey="Today" fill={colors.Today} name="Today" stackId="a" />
-            <Bar
-              dataKey="Tomorrow"
-              fill={colors.Tomorrow}
-              name="Tomorrow"
-              stackId="a"
-            />
+
+            {barKeys.map((key, index) => (
+              <Bar
+                key={key}
+                dataKey={key}
+                stackId="stack"
+                fill={COLORS[index % COLORS.length]}
+                radius={[index === 0 ? 4 : 0, index === 0 ? 4 : 0, 0, 0]}
+              />
+            ))}
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
