@@ -390,7 +390,7 @@ const TaskCard = ({
             )}
 
             {/* Add time button when no estimate exists - improved visibility */}
-            {task.time_estimate === 0 &&
+            {!task.time_estimate &&
               allowTimeEstimate &&
               !isCompleted &&
               !isEditingTime && (
@@ -398,10 +398,10 @@ const TaskCard = ({
                   variant="outline"
                   className="inline-flex items-center text-xs px-2 py-0.5 rounded-full bg-accent/20 text-accent-foreground cursor-pointer hover:bg-accent/30"
                   onClick={() => setIsEditingTime(true)}
-                  title="Add time estimate"
+                  title="Add time"
                 >
                   <Clock className="h-3 w-3 mr-1" />
-                  Add time estimate
+                  Add time
                   <Edit2 className="h-2.5 w-2.5 ml-1 opacity-50" />
                 </Badge>
               )}
