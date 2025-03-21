@@ -1,0 +1,96 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    --radius: 0.5rem;
+    
+    --importance-low: 142.1 76.2% 36.3%;
+    --importance-medium: 35.5 91.7% 54.9%;
+    --importance-high: 0 72.2% 50.6%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* Glass morphism */
+  .glass {
+    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-sm;
+  }
+  
+  .task-card {
+    @apply glass p-4 rounded-lg transition-all duration-300 hover:shadow-md cursor-grab active:cursor-grabbing;
+    animation: var(--entrance-animation, scale-in 0.2s ease-out);
+  }
+  
+  .task-bucket {
+    @apply glass p-4 rounded-lg min-h-[200px] flex flex-col;
+  }
+  
+  .importance-low {
+    @apply border-l-4 border-importance-low;
+  }
+  
+  .importance-medium {
+    @apply border-l-4 border-importance-medium;
+  }
+  
+  .importance-high {
+    @apply border-l-4 border-importance-high;
+  }
+  
+  .bucket-title {
+    @apply text-sm font-medium text-muted-foreground mb-2;
+  }
+  
+  /* Enhanced animations */
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+    100% { transform: translateY(0px); }
+  }
+  
+  .float {
+    animation: float 5s ease-in-out infinite;
+  }
+  
+  /* Add some depth to the drag animation */
+  .task-dragging {
+    @apply shadow-xl scale-105 z-50 opacity-90 rotate-1;
+  }
+}
