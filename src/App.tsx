@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +11,7 @@ import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import CompletedTasksPage from "./components/pages/CompletedTasksPage";
 
 const queryClient = new QueryClient();
 
@@ -21,7 +21,7 @@ const App = () => {
     const init = async () => {
       await initializeDatabase();
     };
-    
+
     init();
   }, []);
 
@@ -34,13 +34,26 @@ const App = () => {
           <Routes>
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/sign-up" element={<SignUp />} />
-            <Route path="/" element={
-              <ProtectedRoute>
-                <TaskProvider>
-                  <Index />
-                </TaskProvider>
-              </ProtectedRoute>
-            } />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <TaskProvider>
+                    <Index />
+                  </TaskProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/completed"
+              element={
+                <ProtectedRoute>
+                  <TaskProvider>
+                    <CompletedTasksPage />
+                  </TaskProvider>
+                </ProtectedRoute>
+              }
+            />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

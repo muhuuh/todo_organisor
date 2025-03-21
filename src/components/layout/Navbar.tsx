@@ -1,9 +1,8 @@
-
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { signOut } from '@/lib/supabase';
-import { Button } from '@/components/ui/button';
-import { Loader2, LogOut } from 'lucide-react';
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { signOut } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import { Loader2, LogOut, CheckSquare, ListTodo } from "lucide-react";
 
 export function Navbar() {
   const navigate = useNavigate();
@@ -13,7 +12,7 @@ export function Navbar() {
     setIsSigningOut(true);
     const success = await signOut();
     if (success) {
-      navigate('/sign-in');
+      navigate("/sign-in");
     }
     setIsSigningOut(false);
   };
@@ -21,8 +20,24 @@ export function Navbar() {
   return (
     <nav className="border-b bg-background/95 backdrop-blur sticky top-0 z-10">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <div className="flex items-center">
+        <div className="flex items-center space-x-6">
           <h1 className="text-lg font-medium">Task Manager</h1>
+          <div className="flex items-center space-x-1">
+            <Link
+              to="/"
+              className="px-3 py-2 rounded-md hover:bg-muted flex items-center"
+            >
+              <ListTodo className="h-4 w-4 mr-2" />
+              Tasks
+            </Link>
+            <Link
+              to="/completed"
+              className="px-3 py-2 rounded-md hover:bg-muted flex items-center"
+            >
+              <CheckSquare className="h-4 w-4 mr-2" />
+              Completed
+            </Link>
+          </div>
         </div>
         <div>
           <Button

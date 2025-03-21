@@ -1,9 +1,14 @@
-
 // Task importance levels
-export type ImportanceLevel = 'Low' | 'Medium' | 'High';
+export type ImportanceLevel = "Low" | "Medium" | "High";
 
 // Bucket types
-export type TaskBucketType = 'Short-Term' | 'Mid-Term' | 'Long-Term' | 'Today' | 'Tomorrow' | 'This Week';
+export type TaskBucketType =
+  | "Short-Term"
+  | "Mid-Term"
+  | "Long-Term"
+  | "Today"
+  | "Tomorrow"
+  | "This Week";
 
 // Task object structure
 export interface Task {
@@ -16,6 +21,7 @@ export interface Task {
   time_estimate?: number; // Optional, in minutes
   bucket: TaskBucketType;
   is_archived: boolean;
+  completed: boolean; // Whether the sub-task is completed
   created_at: string;
   updated_at: string;
 }

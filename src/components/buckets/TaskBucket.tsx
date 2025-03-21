@@ -1,8 +1,14 @@
-
-import { Task, TaskBucketType } from '@/types';
-import TaskCard from '@/components/task/TaskCard';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Task, TaskBucketType, ImportanceLevel } from "@/types";
+import TaskCard from "@/components/task/TaskCard";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface TaskBucketProps {
   title: string;
@@ -13,7 +19,14 @@ interface TaskBucketProps {
   onDelete: (id: string) => void;
   onArchive: (id: string) => void;
   onUpdateTimeEstimate: (id: string, estimate: number) => void;
+  onToggleCompletion: (id: string) => void;
+  onUpdateImportance: (id: string, importance: ImportanceLevel) => void;
   allowTimeEstimate?: boolean;
+}
+
+// Helper interface for grouped tasks
+interface GroupedTasks {
+  [key: string]: Task[];
 }
 
 const TaskBucket = ({
@@ -25,33 +38,75 @@ const TaskBucket = ({
   onDelete,
   onArchive,
   onUpdateTimeEstimate,
+  onToggleCompletion,
+  onUpdateImportance,
   allowTimeEstimate = false,
 }: TaskBucketProps) => {
+  const [openGroups, setOpenGroups] = useState<{ [key: string]: boolean }>({});
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     const dropzone = e.currentTarget;
-    dropzone.classList.add('bg-accent/50', 'border-dashed');
+    dropzone.classList.add("bg-accent/50", "border-dashed");
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     const dropzone = e.currentTarget;
-    dropzone.classList.remove('bg-accent/50', 'border-dashed');
+    dropzone.classList.remove("bg-accent/50", "border-dashed");
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     const dropzone = e.currentTarget;
-    dropzone.classList.remove('bg-accent/50', 'border-dashed');
+    dropzone.classList.remove("bg-accent/50", "border-dashed");
     onDrop(e, type);
   };
 
   // Filter tasks for this bucket
-  const bucketTasks = tasks.filter(task => task.bucket === type);
-  const totalTime = bucketTasks.reduce((sum, task) => sum + (task.time_estimate || 0), 0);
+  const bucketTasks = tasks.filter((task) => task.bucket === type);
+
+  // Calculate total time estimation for all tasks in this bucket
+  const totalTime = bucketTasks.reduce(
+    (sum, task) => sum + (task.time_estimate || 0),
+    0
+  );
+
+  // Group tasks by main_task
+  const groupedTasks: GroupedTasks = bucketTasks.reduce(
+    (groups: GroupedTasks, task) => {
+      // Use main_task if it exists, otherwise use a special identifier for ungrouped tasks
+      const groupKey = task.main_task || "___ungrouped___";
+
+      if (!groups[groupKey]) {
+        groups[groupKey] = [];
+      }
+
+      groups[groupKey].push(task);
+      return groups;
+    },
+    {}
+  );
+
+  // Toggle group open/closed state
+  const toggleGroup = (groupKey: string) => {
+    setOpenGroups((prev) => ({
+      ...prev,
+      [groupKey]: !prev[groupKey],
+    }));
+  };
+
+  // Initialize all groups as open by default
+  useEffect(() => {
+    const initialOpenState: { [key: string]: boolean } = {};
+    Object.keys(groupedTasks).forEach((key) => {
+      initialOpenState[key] = true;
+    });
+    setOpenGroups(initialOpenState);
+  }, []);
 
   return (
-    <Card 
+    <Card
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -77,7 +132,8 @@ const TaskBucket = ({
           </div>
         ) : (
           <>
-            {bucketTasks.map((task) => (
+            {/* Ungrouped tasks (those without a main task) */}
+            {groupedTasks["___ungrouped___"]?.map((task) => (
               <TaskCard
                 key={task.id}
                 task={task}
@@ -85,9 +141,54 @@ const TaskBucket = ({
                 onDelete={onDelete}
                 onArchive={onArchive}
                 onUpdateTimeEstimate={onUpdateTimeEstimate}
-                allowTimeEstimate={allowTimeEstimate}
+                onToggleCompletion={onToggleCompletion}
+                onUpdateImportance={onUpdateImportance}
+                allowTimeEstimate={true}
+                inGroupView={false}
               />
             ))}
+
+            {/* Grouped tasks by main task */}
+            {Object.entries(groupedTasks)
+              .filter(([key]) => key !== "___ungrouped___")
+              .map(([mainTask, tasks]) => (
+                <Collapsible
+                  key={mainTask}
+                  open={openGroups[mainTask]}
+                  className="border rounded-md p-2 mb-3 bg-card"
+                >
+                  <CollapsibleTrigger
+                    className="flex items-center justify-between w-full text-left"
+                    onClick={() => toggleGroup(mainTask)}
+                  >
+                    <div className="font-medium">{mainTask}</div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">{tasks.length}</Badge>
+                      {openGroups[mainTask] ? (
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-2">
+                    {tasks.map((task) => (
+                      <TaskCard
+                        key={task.id}
+                        task={task}
+                        onDragStart={onDragStart}
+                        onDelete={onDelete}
+                        onArchive={onArchive}
+                        onUpdateTimeEstimate={onUpdateTimeEstimate}
+                        onToggleCompletion={onToggleCompletion}
+                        onUpdateImportance={onUpdateImportance}
+                        allowTimeEstimate={true}
+                        inGroupView={true}
+                      />
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              ))}
           </>
         )}
       </CardContent>

@@ -1,58 +1,62 @@
-
-import { useState, useEffect } from 'react';
-import { useTaskContext } from '@/context/TaskContext';
-import { Task, TaskBucketType } from '@/types';
-import TaskBucket from '@/components/buckets/TaskBucket';
-import CreateTaskForm from '@/components/forms/CreateTaskForm';
-import VisualSummary from '@/components/charts/VisualSummary';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'sonner';
-import { Navbar } from '@/components/layout/Navbar';
+import { useState, useEffect } from "react";
+import { useTaskContext } from "@/context/TaskContext";
+import { Task, TaskBucketType } from "@/types";
+import TaskBucket from "@/components/buckets/TaskBucket";
+import CreateTaskForm from "@/components/forms/CreateTaskForm";
+import VisualSummary from "@/components/charts/VisualSummary";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import { Navbar } from "@/components/layout/Navbar";
 
 const Index = () => {
-  const { 
-    tasks, 
-    isLoading, 
-    addTask, 
-    deleteTask, 
-    archiveTask, 
+  const {
+    tasks,
+    isLoading,
+    addTask,
+    deleteTask,
+    archiveTask,
     moveToBucket,
-    updateTimeEstimate 
+    updateTimeEstimate,
+    toggleTaskCompletion,
+    updateTaskImportance,
   } = useTaskContext();
-  
+
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
-  
+
   // Handle drag start
   const handleDragStart = (e: React.DragEvent, task: Task) => {
     // Set drag data with task ID for when dropping
-    e.dataTransfer.setData('taskId', task.id);
+    e.dataTransfer.setData("taskId", task.id);
     setDraggedTask(task);
   };
-  
+
   // Handle drop
-  const handleDrop = async (e: React.DragEvent, targetBucket: TaskBucketType) => {
-    const taskId = e.dataTransfer.getData('taskId');
-    
+  const handleDrop = async (
+    e: React.DragEvent,
+    targetBucket: TaskBucketType
+  ) => {
+    const taskId = e.dataTransfer.getData("taskId");
+
     if (!taskId) return;
-    
+
     // Get the current bucket of the task
-    const task = tasks.find(t => t.id === taskId);
-    
+    const task = tasks.find((t) => t.id === taskId);
+
     if (!task) return;
-    
+
     // If the bucket hasn't changed, don't do anything
     if (task.bucket === targetBucket) return;
-    
+
     // Move task to the new bucket
     try {
       await moveToBucket(taskId, targetBucket);
       toast.success(`Task moved to ${targetBucket}`);
     } catch (err) {
-      console.error('Error moving task:', err);
-      toast.error('Failed to move task');
+      console.error("Error moving task:", err);
+      toast.error("Failed to move task");
     }
   };
-  
+
   // Render loading skeleton while data is loading
   if (isLoading) {
     return (
@@ -77,22 +81,24 @@ const Index = () => {
       </div>
     );
   }
-  
+
   return (
     <div>
       <Navbar />
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <header className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-center mb-1">Task Manager</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-center mb-1">
+            Task Organizer
+          </h1>
           <p className="text-center text-muted-foreground">
-            Organize your tasks and track your time
+            Organize tasks by projects and track your time efficiently
           </p>
         </header>
-        
+
         <CreateTaskForm onSubmit={addTask} />
-        
+
         <section className="mb-8">
-          <h2 className="text-xl font-medium mb-4">Task Buckets</h2>
+          <h2 className="text-xl font-medium mb-4">Task Category Buckets</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <TaskBucket
               title="Short-Term Tasks"
@@ -103,6 +109,8 @@ const Index = () => {
               onDelete={deleteTask}
               onArchive={archiveTask}
               onUpdateTimeEstimate={updateTimeEstimate}
+              onToggleCompletion={toggleTaskCompletion}
+              onUpdateImportance={updateTaskImportance}
             />
             <TaskBucket
               title="Mid-Term Tasks"
@@ -113,6 +121,8 @@ const Index = () => {
               onDelete={deleteTask}
               onArchive={archiveTask}
               onUpdateTimeEstimate={updateTimeEstimate}
+              onToggleCompletion={toggleTaskCompletion}
+              onUpdateImportance={updateTaskImportance}
             />
             <TaskBucket
               title="Long-Term Tasks"
@@ -123,12 +133,14 @@ const Index = () => {
               onDelete={deleteTask}
               onArchive={archiveTask}
               onUpdateTimeEstimate={updateTimeEstimate}
+              onToggleCompletion={toggleTaskCompletion}
+              onUpdateImportance={updateTaskImportance}
             />
           </div>
         </section>
-        
+
         <section className="mb-8">
-          <h2 className="text-xl font-medium mb-4">Timeframe Buckets</h2>
+          <h2 className="text-xl font-medium mb-4">Planning Timeframes</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <TaskBucket
               title="Today"
@@ -139,6 +151,8 @@ const Index = () => {
               onDelete={deleteTask}
               onArchive={archiveTask}
               onUpdateTimeEstimate={updateTimeEstimate}
+              onToggleCompletion={toggleTaskCompletion}
+              onUpdateImportance={updateTaskImportance}
               allowTimeEstimate
             />
             <TaskBucket
@@ -150,6 +164,8 @@ const Index = () => {
               onDelete={deleteTask}
               onArchive={archiveTask}
               onUpdateTimeEstimate={updateTimeEstimate}
+              onToggleCompletion={toggleTaskCompletion}
+              onUpdateImportance={updateTaskImportance}
               allowTimeEstimate
             />
             <TaskBucket
@@ -161,11 +177,13 @@ const Index = () => {
               onDelete={deleteTask}
               onArchive={archiveTask}
               onUpdateTimeEstimate={updateTimeEstimate}
+              onToggleCompletion={toggleTaskCompletion}
+              onUpdateImportance={updateTaskImportance}
               allowTimeEstimate
             />
           </div>
         </section>
-        
+
         <section>
           <h2 className="text-xl font-medium mb-4">Visual Summary</h2>
           <VisualSummary tasks={tasks} />

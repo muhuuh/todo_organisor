@@ -1,18 +1,31 @@
-
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase, handleSupabaseError } from '@/lib/supabase';
-import { Task, TaskFormInput, TaskBucketType } from '@/types';
-import { toast } from 'sonner';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { supabase, handleSupabaseError } from "@/lib/supabase";
+import { Task, TaskFormInput, TaskBucketType, ImportanceLevel } from "@/types";
+import { toast } from "sonner";
 
 interface TaskContextType {
   tasks: Task[];
+  completedTasks: Task[];
   isLoading: boolean;
+  isLoadingCompleted: boolean;
   addTask: (task: TaskFormInput) => Promise<void>;
   updateTask: (task: Task) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   archiveTask: (id: string) => Promise<void>;
   moveToBucket: (taskId: string, bucket: TaskBucketType) => Promise<void>;
   updateTimeEstimate: (taskId: string, estimate: number) => Promise<void>;
+  toggleTaskCompletion: (taskId: string) => Promise<void>;
+  updateTaskImportance: (
+    taskId: string,
+    importance: ImportanceLevel
+  ) => Promise<void>;
+  fetchCompletedTasks: () => Promise<void>;
   userId: string | null;
 }
 
@@ -20,17 +33,21 @@ const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
 export const TaskProvider = ({ children }: { children: ReactNode }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingCompleted, setIsLoadingCompleted] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
 
   // Check for authentication and fetch tasks on component mount
   useEffect(() => {
     const checkAuthAndFetchTasks = async () => {
       const { data } = await supabase.auth.getSession();
-      
+
       if (data.session) {
         setUserId(data.session.user.id);
         fetchTasks(data.session.user.id);
+        // Also fetch completed tasks on initial load
+        fetchCompletedTasks(data.session.user.id);
       } else {
         setIsLoading(false);
       }
@@ -42,11 +59,14 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       const newUserId = session?.user.id || null;
       setUserId(newUserId);
-      
+
       if (newUserId) {
         fetchTasks(newUserId);
+        // Also fetch completed tasks when auth changes
+        fetchCompletedTasks(newUserId);
       } else {
         setTasks([]);
+        setCompletedTasks([]);
         setIsLoading(false);
       }
     });
@@ -61,71 +81,114 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
-        .from('tasks')
-        .select('*')
-        .eq('user_id', currentUserId)
-        .eq('is_archived', false)
-        .order('created_at', { ascending: false });
+        .from("tasks")
+        .select("*")
+        .eq("user_id", currentUserId)
+        .eq("is_archived", false) // Only fetch non-archived tasks
+        .order("created_at", { ascending: false });
 
       if (handleSupabaseError(error)) return;
 
-      setTasks(data || []);
+      // Double-check to ensure no archived tasks appear in the main view
+      const filteredData = data ? data.filter((task) => !task.is_archived) : [];
+      setTasks(filteredData);
     } catch (err) {
-      console.error('Error fetching tasks:', err);
-      toast.error('Failed to load tasks');
+      console.error("Error fetching tasks:", err);
+      toast.error("Failed to load tasks");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Fetch completed tasks from Supabase
+  const fetchCompletedTasks = async (currentUserIdParam?: string) => {
+    const userIdToUse = currentUserIdParam || userId;
+    if (!userIdToUse) {
+      toast.error("You must be signed in to view completed tasks");
+      return;
+    }
+
+    setIsLoadingCompleted(true);
+    try {
+      // Make sure to explicitly get tasks that are both archived and completed
+      const { data, error } = await supabase
+        .from("tasks")
+        .select("*")
+        .eq("user_id", userIdToUse)
+        .eq("is_archived", true)
+        .eq("completed", true)
+        .order("updated_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching completed tasks:", error);
+        toast.error(error.message || "Failed to load completed tasks");
+        return;
+      }
+
+      console.log(`Fetched ${data?.length || 0} completed tasks`);
+
+      // Ensure we only set completed tasks when we have valid data
+      if (data) {
+        setCompletedTasks(data);
+      }
+    } catch (err) {
+      console.error("Error fetching completed tasks:", err);
+      toast.error("Failed to load completed tasks");
+      throw err; // Rethrow so we can catch it in the CompletedTasksPage
+    } finally {
+      setIsLoadingCompleted(false);
     }
   };
 
   // Add a new task
   const addTask = async (taskInput: TaskFormInput) => {
     if (!userId) {
-      toast.error('You must be signed in to add tasks');
+      toast.error("You must be signed in to add tasks");
       return;
     }
 
     try {
-      const newTask: Omit<Task, 'id' | 'created_at' | 'updated_at'> = {
+      const newTask: Omit<Task, "id" | "created_at" | "updated_at"> = {
         ...taskInput,
         user_id: userId,
         is_archived: false,
+        completed: false,
       };
 
       const { data, error } = await supabase
-        .from('tasks')
+        .from("tasks")
         .insert([newTask])
         .select();
 
       if (handleSupabaseError(error)) return;
 
       setTasks((prevTasks) => [...prevTasks, ...(data || [])]);
-      toast.success('Task added successfully');
+      toast.success("Task added successfully");
     } catch (err) {
-      console.error('Error adding task:', err);
-      toast.error('Failed to add task');
+      console.error("Error adding task:", err);
+      toast.error("Failed to add task");
     }
   };
 
   // Update an existing task
   const updateTask = async (task: Task) => {
     if (!userId) {
-      toast.error('You must be signed in to update tasks');
+      toast.error("You must be signed in to update tasks");
       return;
     }
 
     try {
       // Ensure we're only updating the current user's tasks
       if (task.user_id !== userId) {
-        toast.error('You can only update your own tasks');
+        toast.error("You can only update your own tasks");
         return;
       }
 
       const { error } = await supabase
-        .from('tasks')
+        .from("tasks")
         .update(task)
-        .eq('id', task.id)
-        .eq('user_id', userId);
+        .eq("id", task.id)
+        .eq("user_id", userId);
 
       if (handleSupabaseError(error)) return;
 
@@ -133,63 +196,101 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
         prevTasks.map((t) => (t.id === task.id ? task : t))
       );
     } catch (err) {
-      console.error('Error updating task:', err);
-      toast.error('Failed to update task');
+      console.error("Error updating task:", err);
+      toast.error("Failed to update task");
     }
   };
 
   // Delete a task
   const deleteTask = async (id: string) => {
     if (!userId) {
-      toast.error('You must be signed in to delete tasks');
+      toast.error("You must be signed in to delete tasks");
       return;
     }
 
     try {
       const { error } = await supabase
-        .from('tasks')
+        .from("tasks")
         .delete()
-        .eq('id', id)
-        .eq('user_id', userId);
+        .eq("id", id)
+        .eq("user_id", userId);
 
       if (handleSupabaseError(error)) return;
 
       setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
-      toast.success('Task deleted');
+      setCompletedTasks((prevTasks) =>
+        prevTasks.filter((task) => task.id !== id)
+      );
+      toast.success("Task deleted");
     } catch (err) {
-      console.error('Error deleting task:', err);
-      toast.error('Failed to delete task');
+      console.error("Error deleting task:", err);
+      toast.error("Failed to delete task");
     }
   };
 
-  // Archive a task
+  // Archive a task (mark as completed)
   const archiveTask = async (id: string) => {
     if (!userId) {
-      toast.error('You must be signed in to archive tasks');
+      toast.error("You must be signed in to mark tasks as complete");
       return;
     }
 
     try {
+      const task = tasks.find((t) => t.id === id);
+      if (!task) {
+        console.error("Task not found for archiving:", id);
+        return;
+      }
+
+      console.log("Archiving task:", id);
+
+      // First update the database
       const { error } = await supabase
-        .from('tasks')
-        .update({ is_archived: true })
-        .eq('id', id)
-        .eq('user_id', userId);
+        .from("tasks")
+        .update({
+          is_archived: true,
+          completed: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .eq("user_id", userId);
 
-      if (handleSupabaseError(error)) return;
+      if (error) {
+        console.error("Error archiving task:", error);
+        toast.error(error.message || "Failed to archive task");
+        return;
+      }
 
-      setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
-      toast.success('Task archived');
+      // Create the completed task object with updated fields
+      const completedTask = {
+        ...task,
+        is_archived: true,
+        completed: true,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Remove from active tasks list
+      setTasks((prevTasks) => prevTasks.filter((t) => t.id !== id));
+
+      // Add to completed tasks list
+      setCompletedTasks((prev) => [completedTask, ...prev]);
+
+      toast.success("Task marked as completed");
+
+      // Refresh both task lists to ensure consistency
+      if (userId) {
+        fetchTasks(userId);
+      }
     } catch (err) {
-      console.error('Error archiving task:', err);
-      toast.error('Failed to archive task');
+      console.error("Error marking task as completed:", err);
+      toast.error("Failed to mark task as completed");
     }
   };
 
   // Move task to a different bucket
   const moveToBucket = async (taskId: string, bucket: TaskBucketType) => {
     if (!userId) {
-      toast.error('You must be signed in to move tasks');
+      toast.error("You must be signed in to move tasks");
       return;
     }
 
@@ -199,17 +300,17 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
 
       // Ensure we're only updating the current user's tasks
       if (task.user_id !== userId) {
-        toast.error('You can only move your own tasks');
+        toast.error("You can only move your own tasks");
         return;
       }
 
       const updatedTask = { ...task, bucket };
-      
+
       const { error } = await supabase
-        .from('tasks')
+        .from("tasks")
         .update({ bucket })
-        .eq('id', taskId)
-        .eq('user_id', userId);
+        .eq("id", taskId)
+        .eq("user_id", userId);
 
       if (handleSupabaseError(error)) return;
 
@@ -217,24 +318,24 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
         prevTasks.map((t) => (t.id === taskId ? { ...t, bucket } : t))
       );
     } catch (err) {
-      console.error('Error moving task:', err);
-      toast.error('Failed to move task');
+      console.error("Error moving task:", err);
+      toast.error("Failed to move task");
     }
   };
 
   // Update time estimate for a task
   const updateTimeEstimate = async (taskId: string, estimate: number) => {
     if (!userId) {
-      toast.error('You must be signed in to update time estimates');
+      toast.error("You must be signed in to update time estimates");
       return;
     }
 
     try {
       const { error } = await supabase
-        .from('tasks')
+        .from("tasks")
         .update({ time_estimate: estimate })
-        .eq('id', taskId)
-        .eq('user_id', userId);
+        .eq("id", taskId)
+        .eq("user_id", userId);
 
       if (handleSupabaseError(error)) return;
 
@@ -244,20 +345,111 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
         )
       );
     } catch (err) {
-      console.error('Error updating time estimate:', err);
-      toast.error('Failed to update time estimate');
+      console.error("Error updating time estimate:", err);
+      toast.error("Failed to update time estimate");
+    }
+  };
+
+  // Toggle task completion status
+  const toggleTaskCompletion = async (taskId: string) => {
+    if (!userId) {
+      toast.error("You must be signed in to update tasks");
+      return;
+    }
+
+    try {
+      // Find the task to toggle its completion status
+      const task = tasks.find((t) => t.id === taskId);
+      if (!task) return;
+
+      // Ensure we're only updating the current user's tasks
+      if (task.user_id !== userId) {
+        toast.error("You can only update your own tasks");
+        return;
+      }
+
+      const newCompletedStatus = !task.completed;
+
+      // If the task is being marked as completed, archive it immediately
+      if (newCompletedStatus) {
+        archiveTask(taskId);
+        return;
+      }
+
+      const { error } = await supabase
+        .from("tasks")
+        .update({ completed: newCompletedStatus })
+        .eq("id", taskId)
+        .eq("user_id", userId);
+
+      if (handleSupabaseError(error)) return;
+
+      setTasks((prevTasks) =>
+        prevTasks.map((t) =>
+          t.id === taskId ? { ...t, completed: newCompletedStatus } : t
+        )
+      );
+
+      toast.success("Task marked as incomplete");
+    } catch (err) {
+      console.error("Error toggling task completion:", err);
+      toast.error("Failed to update task");
+    }
+  };
+
+  // Update task importance
+  const updateTaskImportance = async (
+    taskId: string,
+    importance: ImportanceLevel
+  ) => {
+    if (!userId) {
+      toast.error("You must be signed in to update tasks");
+      return;
+    }
+
+    try {
+      const task = tasks.find((t) => t.id === taskId);
+      if (!task) return;
+
+      // Ensure we're only updating the current user's tasks
+      if (task.user_id !== userId) {
+        toast.error("You can only update your own tasks");
+        return;
+      }
+
+      const { error } = await supabase
+        .from("tasks")
+        .update({ importance })
+        .eq("id", taskId)
+        .eq("user_id", userId);
+
+      if (handleSupabaseError(error)) return;
+
+      setTasks((prevTasks) =>
+        prevTasks.map((t) => (t.id === taskId ? { ...t, importance } : t))
+      );
+
+      toast.success("Task importance updated");
+    } catch (err) {
+      console.error("Error updating task importance:", err);
+      toast.error("Failed to update task importance");
     }
   };
 
   const value = {
     tasks,
+    completedTasks,
     isLoading,
+    isLoadingCompleted,
     addTask,
     updateTask,
     deleteTask,
     archiveTask,
     moveToBucket,
     updateTimeEstimate,
+    toggleTaskCompletion,
+    updateTaskImportance,
+    fetchCompletedTasks,
     userId,
   };
 
@@ -267,7 +459,7 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
 export const useTaskContext = () => {
   const context = useContext(TaskContext);
   if (context === undefined) {
-    throw new Error('useTaskContext must be used within a TaskProvider');
+    throw new Error("useTaskContext must be used within a TaskProvider");
   }
   return context;
 };
