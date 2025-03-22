@@ -1,12 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import {
   PlayCircle,
@@ -113,10 +107,6 @@ const TaskCountdown = ({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-center">Task Timer</DialogTitle>
-        </DialogHeader>
-
         <div className="flex flex-col items-center py-6">
           <h3 className="font-medium text-lg mb-6 text-center">{taskName}</h3>
 
@@ -139,7 +129,9 @@ const TaskCountdown = ({
           </div>
 
           <Progress value={progressPercentage} className="w-full h-2" />
-
+          <div className="text-xs text-muted-foreground mt-2">
+            Initial time: {totalMinutes} min
+          </div>
           <div className="mt-6 flex gap-3">
             <Button
               variant="outline"
@@ -177,15 +169,6 @@ const TaskCountdown = ({
             </Button>
           </div>
         </div>
-
-        <DialogFooter className="flex justify-between sm:justify-between">
-          <div className="text-xs text-muted-foreground">
-            Estimated: {totalMinutes} min
-          </div>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            Close
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
