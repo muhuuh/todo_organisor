@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import TaskCard from "@/components/task/TaskCard";
 import { Navbar } from "@/components/layout/Navbar";
+import CompletedTasksVisualization from "@/components/charts/CompletedTasksVisualization";
 
 export default function CompletedTasksPage() {
   const {
@@ -62,6 +63,13 @@ export default function CompletedTasksPage() {
     <div>
       <Navbar />
       <div className="container mx-auto px-4 py-8">
+        {/* Visualization Card */}
+        {!isLoadingCompleted && !error && completedTasks.length > 0 && (
+          <div className="mb-8">
+            <CompletedTasksVisualization tasks={completedTasks} dayRange={30} />
+          </div>
+        )}
+
         <Card className="w-full">
           <CardHeader>
             <div className="flex items-center justify-between">
