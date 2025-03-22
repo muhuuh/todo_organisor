@@ -14,9 +14,11 @@ import {
   Info,
   Edit2,
   X,
+  Timer,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import TaskCountdown from "./TaskCountdown";
 
 interface TaskCardProps {
   task: Task;
@@ -49,6 +51,7 @@ const TaskCard = ({
   const [isEditingTime, setIsEditingTime] = useState(false);
   const [showImportanceOptions, setShowImportanceOptions] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const [showCountdown, setShowCountdown] = useState(false);
   const timeInputRef = useRef<HTMLInputElement>(null);
   const importanceRef = useRef<HTMLDivElement>(null);
 
@@ -132,6 +135,13 @@ const TaskCard = ({
     onUpdateImportance(task.id, importance);
     setShowImportanceOptions(false);
     toast.success(`Task importance set to ${importance}`);
+  };
+
+  const handleOpenCountdown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (task.time_estimate > 0) {
+      setShowCountdown(true);
+    }
   };
 
   const importanceClass = `importance-${task.importance.toLowerCase()}`;
@@ -220,15 +230,15 @@ const TaskCard = ({
         }`}
       >
         <div className="flex justify-between items-start group relative">
-          {/* Delete button - only visible on hover unless on mobile */}
+          {/* Delete button - always visible but subtle */}
           {!isEditingTime && (
             <button
               onClick={() => onDelete(task.id)}
-              className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+              className="absolute right-0 top-0 text-muted-foreground/40 hover:text-destructive transition-colors"
               aria-label="Delete task"
               title="Delete task"
             >
-              <X className="h-4 w-4 text-muted-foreground hover:text-destructive transition-colors" />
+              <X className="h-4 w-4" />
             </button>
           )}
 
@@ -361,32 +371,46 @@ const TaskCard = ({
               </Badge>
             )}
 
-            {/* Time estimate badge - Clickable if allowed */}
+            {/* Time estimate badge with countdown button - Clickable if allowed */}
             {task.time_estimate > 0 && !isEditingTime && (
-              <Badge
-                variant="outline"
-                className={`inline-flex items-center text-xs px-2 py-0.5 rounded-full bg-accent/20 text-accent-foreground ${
-                  allowTimeEstimate && !isCompleted
-                    ? "cursor-pointer hover:bg-accent/30"
-                    : ""
-                }`}
-                onClick={() => {
-                  if (allowTimeEstimate && !isCompleted) {
-                    setIsEditingTime(true);
+              <div className="flex gap-1">
+                <Badge
+                  variant="outline"
+                  className={`inline-flex items-center text-xs px-2 py-0.5 rounded-full bg-accent/20 text-accent-foreground ${
+                    allowTimeEstimate && !isCompleted
+                      ? "cursor-pointer hover:bg-accent/30"
+                      : ""
+                  }`}
+                  onClick={() => {
+                    if (allowTimeEstimate && !isCompleted) {
+                      setIsEditingTime(true);
+                    }
+                  }}
+                  title={
+                    allowTimeEstimate && !isCompleted
+                      ? "Click to edit time"
+                      : "Time estimate"
                   }
-                }}
-                title={
-                  allowTimeEstimate && !isCompleted
-                    ? "Click to edit time"
-                    : "Time estimate"
-                }
-              >
-                <Clock className="h-3 w-3 mr-1" />
-                {task.time_estimate} min
-                {allowTimeEstimate && !isCompleted && (
-                  <Edit2 className="h-2.5 w-2.5 ml-1 opacity-50" />
+                >
+                  <Clock className="h-3 w-3 mr-1" />
+                  {task.time_estimate} min
+                  {allowTimeEstimate && !isCompleted && (
+                    <Edit2 className="h-2.5 w-2.5 ml-1 opacity-50" />
+                  )}
+                </Badge>
+
+                {!isCompleted && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-5 w-5 rounded-full p-0 flex items-center justify-center bg-primary/10 hover:bg-primary/20"
+                    onClick={handleOpenCountdown}
+                    title="Start countdown timer"
+                  >
+                    <Timer className="h-3 w-3 text-primary" />
+                  </Button>
                 )}
-              </Badge>
+              </div>
             )}
 
             {/* Add time button when no estimate exists - improved visibility */}
@@ -411,6 +435,14 @@ const TaskCard = ({
 
       {/* Render importance dropdown */}
       {renderImportanceDropdown()}
+
+      {/* Task Countdown Modal */}
+      <TaskCountdown
+        isOpen={showCountdown}
+        onClose={() => setShowCountdown(false)}
+        taskName={task.sub_task}
+        totalMinutes={task.time_estimate || 0}
+      />
     </>
   );
 };
