@@ -6,14 +6,14 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   CartesianGrid,
-  Cell,
+  ReferenceLine,
 } from "recharts";
 import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface TimeVisualizationProps {
   tasks: Task[];
@@ -35,6 +35,7 @@ const COLORS = [
 
 const TimeVisualization = ({ tasks }: TimeVisualizationProps) => {
   const [showSubTasks, setShowSubTasks] = useState(false);
+  const [useFixedScale, setUseFixedScale] = useState(true);
 
   // Filter out any tasks without a bucket (Today/Tomorrow) or time estimate
   const filteredTasks = tasks.filter(
@@ -203,7 +204,7 @@ const TimeVisualization = ({ tasks }: TimeVisualizationProps) => {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="h-[400px] pt-4">
+      <CardContent className="h-[400px] pt-4 relative">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={chartData}
@@ -233,34 +234,23 @@ const TimeVisualization = ({ tasks }: TimeVisualizationProps) => {
               }}
               axisLine={{ stroke: "#e2e8f0", strokeWidth: 1 }}
               tick={{ fontSize: 12, fill: "#64748b" }}
+              domain={useFixedScale ? [0, 800] : [0, "auto"]}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Legend
-              layout="horizontal"
-              verticalAlign="bottom"
-              content={({ payload }) => (
-                <div className="flex flex-wrap justify-center items-center gap-3 mt-2 max-w-full overflow-hidden">
-                  {payload?.map((entry: any, index: number) => {
-                    const name = entry.value;
-                    const displayText =
-                      name.length > 20 ? name.substring(0, 18) + "..." : name;
-
-                    return (
-                      <div
-                        key={index}
-                        className="flex items-center text-xs whitespace-nowrap"
-                      >
-                        <span
-                          className="inline-block w-3 h-3 rounded-sm mr-1"
-                          style={{ backgroundColor: entry.color }}
-                        />
-                        <span title={name}>{displayText}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            />
+            {useFixedScale && (
+              <ReferenceLine
+                y={480}
+                stroke="#FF4444"
+                strokeDasharray="3 3"
+                strokeWidth={2}
+                label={{
+                  value: "8 hrs",
+                  position: "right",
+                  fill: "#FF4444",
+                  fontSize: 12,
+                }}
+              />
+            )}
 
             {barKeys.map((key, index) => (
               <Bar
@@ -273,6 +263,17 @@ const TimeVisualization = ({ tasks }: TimeVisualizationProps) => {
             ))}
           </BarChart>
         </ResponsiveContainer>
+
+        <div className="absolute bottom-1 right-1 flex items-center space-x-2 text-xs text-muted-foreground">
+          <Checkbox
+            id="fixed-scale"
+            checked={useFixedScale}
+            onCheckedChange={(checked) => setUseFixedScale(checked as boolean)}
+          />
+          <Label htmlFor="fixed-scale" className="cursor-pointer">
+            Show 8hr limit
+          </Label>
+        </div>
       </CardContent>
     </Card>
   );
