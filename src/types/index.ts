@@ -28,11 +28,12 @@ export interface Task {
 
 // Form input for creating a new task
 export interface TaskFormInput {
+  main_task: string;
   sub_task: string;
-  main_task?: string;
   category: string;
   importance: ImportanceLevel;
   bucket: TaskBucketType;
+  time_estimate?: number; // Add time_estimate as an optional number
 }
 
 // Props for the TaskCard component

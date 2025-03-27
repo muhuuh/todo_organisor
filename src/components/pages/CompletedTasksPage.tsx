@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import TaskCard from "@/components/task/TaskCard";
 import { Navbar } from "@/components/layout/Navbar";
-import CompletedTasksVisualization from "@/components/charts/CompletedTasksVisualization";
+import CompletedTasksVisualization from "../charts/CompletedTasksVisualization";
 
 export default function CompletedTasksPage() {
   const {

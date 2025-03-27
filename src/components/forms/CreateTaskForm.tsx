@@ -13,6 +13,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
 import {
   Select,
   SelectContent,
@@ -28,6 +29,7 @@ import {
   Tag,
   AlertCircle,
   Clock,
+  Timer,
 } from "lucide-react";
 import { useTaskContext } from "@/context/TaskContext";
 import { cn } from "@/lib/utils";
@@ -53,6 +55,10 @@ const formSchema = z.object({
     "Tomorrow",
     "This Week",
   ]),
+  time_estimate: z.preprocess(
+    (val) => (val === "" ? undefined : Number(val)),
+    z.number().min(0).optional()
+  ),
 });
 
 interface CreateTaskFormProps {
@@ -68,9 +74,11 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
   const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
   const [mainTaskInput, setMainTaskInput] = useState("");
   const [categoryInput, setCategoryInput] = useState("");
+  const [timeEstimate, setTimeEstimate] = useState(0);
 
   const mainTaskRef = useRef<HTMLInputElement>(null);
   const categoryRef = useRef<HTMLInputElement>(null);
+  const timeInputRef = useRef<HTMLInputElement>(null);
 
   const { tasks } = useTaskContext();
 
@@ -80,6 +88,7 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
     setHasClickedCategory(false);
     setMainTaskInput("");
     setCategoryInput("");
+    setTimeEstimate(0);
     if (!isOpen) {
       form.reset();
     }
@@ -93,8 +102,28 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
       category: "",
       importance: "Medium" as ImportanceLevel,
       bucket: "Short-Term" as TaskBucketType,
+      time_estimate: undefined,
     },
   });
+
+  // Track the time estimate value from form
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === "time_estimate") {
+        const newTime = value.time_estimate || 0;
+        setTimeEstimate(newTime);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form.watch]);
+
+  // Update form when time estimate changes from slider
+  useEffect(() => {
+    form.setValue("time_estimate", timeEstimate || undefined, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+  }, [timeEstimate, form]);
 
   // Extract unique main tasks and categories from existing tasks
   useEffect(() => {
@@ -138,6 +167,7 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
       category: values.category,
       importance: values.importance,
       bucket: values.bucket,
+      time_estimate: values.time_estimate,
     };
 
     await onSubmit(taskInput);
@@ -159,6 +189,11 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
     setCategoryInput(option);
     setHasClickedCategory(false);
     categoryRef.current?.blur();
+  };
+
+  // Handle slider change
+  const handleSliderChange = (value: number[]) => {
+    setTimeEstimate(value[0]);
   };
 
   // Display either all options (if input is empty) or filtered ones (if typing)
@@ -354,6 +389,46 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
                         </div>
                       </div>
                     )}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="time_estimate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-1.5">
+                    <Timer className="h-4 w-4" />
+                    Time Estimate (minutes)
+                  </FormLabel>
+                  <div className="bg-accent/5 p-3 rounded-md border border-accent/10">
+                    <div className="flex items-center gap-2.5">
+                      <Slider
+                        className="flex-grow"
+                        min={0}
+                        max={120}
+                        step={5}
+                        value={[timeEstimate]}
+                        onValueChange={handleSliderChange}
+                      />
+                      <FormControl>
+                        <Input
+                          ref={timeInputRef}
+                          type="number"
+                          min={0}
+                          className="w-16 h-8 text-xs text-center"
+                          value={timeEstimate || 0}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value) || 0;
+                            setTimeEstimate(value);
+                            field.onChange(value === 0 ? undefined : value);
+                          }}
+                        />
+                      </FormControl>
+                    </div>
                   </div>
                   <FormMessage />
                 </FormItem>
