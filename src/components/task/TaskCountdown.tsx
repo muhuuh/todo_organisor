@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Progress } from "@/components/ui/progress";
 import {
   PlayCircle,
   PauseCircle,
@@ -38,12 +37,6 @@ const TaskCountdown = ({
       .toString()
       .padStart(2, "0")}`;
   };
-
-  // Calculate progress percentage
-  const progressPercentage = Math.max(
-    0,
-    ((totalSeconds.current - secondsLeft) / totalSeconds.current) * 100
-  );
 
   // Start/reset timer when opening modal
   useEffect(() => {
@@ -104,12 +97,37 @@ const TaskCountdown = ({
     return "text-primary";
   };
 
-  // Get progress color based on time remaining
+  // Calculate progress directly
+  const calculateProgress = () => {
+    // If paused at initial state, return 0
+    if (isPaused && secondsLeft === totalSeconds.current) {
+      return 0;
+    }
+
+    // Calculate elapsed time as percentage
+    const elapsed = totalSeconds.current - secondsLeft;
+    return Math.min(100, Math.max(0, (elapsed / totalSeconds.current) * 100));
+  };
+
+  // Get progress color
   const getProgressColor = () => {
-    const percentageLeft = (secondsLeft / totalSeconds.current) * 100;
-    if (percentageLeft <= 20) return "bg-destructive";
-    if (percentageLeft <= 50) return "bg-amber-500";
+    const progress = calculateProgress();
+    if (progress >= 80) return "bg-destructive";
+    if (progress >= 50) return "bg-amber-500";
     return "bg-primary";
+  };
+
+  // Calculate progress width style
+  const progressWidth = {
+    width: `${calculateProgress()}%`,
+  };
+
+  // Get timer ring color class
+  const getTimerRingColorClass = () => {
+    const percentageLeft = (secondsLeft / totalSeconds.current) * 100;
+    if (percentageLeft <= 20) return "border-destructive/30";
+    if (percentageLeft <= 50) return "border-amber-500/30";
+    return "border-primary/20";
   };
 
   return (
@@ -120,15 +138,29 @@ const TaskCountdown = ({
             {taskName}
           </h3>
 
-          <div className="relative w-40 h-40 flex items-center justify-center mb-8">
-            {/* Circular background */}
-            <div className="absolute inset-0 rounded-full bg-accent/10 border border-border/40"></div>
+          <div className="relative w-44 h-44 flex items-center justify-center mb-8">
+            {/* Circular background - Enhanced with multi-layered effect */}
+            <div
+              className={cn(
+                "absolute inset-0 rounded-full bg-accent/5 border-2 border-accent/10 shadow-inner",
+                getTimerRingColorClass()
+              )}
+            ></div>
+
+            {/* Inner subtle glow */}
+            <div className="absolute inset-2 rounded-full bg-background shadow-sm"></div>
+
+            {/* Pulse animation when active */}
+            {!isPaused && !isComplete && (
+              <div className="absolute inset-0 rounded-full bg-primary/5 animate-pulse"></div>
+            )}
 
             {/* Countdown display */}
             <div
               className={cn(
-                "text-5xl font-bold tracking-tight transition-colors",
-                getTimerColor()
+                "text-5xl font-bold tracking-tight transition-colors z-10 relative",
+                getTimerColor(),
+                isComplete ? "scale-105 transition-transform duration-300" : ""
               )}
             >
               {formatTime(secondsLeft)}
@@ -136,26 +168,33 @@ const TaskCountdown = ({
 
             {/* Time finished alert */}
             {isComplete && (
-              <div className="absolute -bottom-9 flex items-center text-destructive animate-pulse">
+              <div className="absolute -bottom-10 flex items-center text-destructive animate-pulse">
                 <AlertCircle className="h-4 w-4 mr-1.5" />
                 <span className="text-sm font-medium">Time's up!</span>
               </div>
             )}
           </div>
 
-          <Progress
-            value={progressPercentage}
-            className={cn("w-full h-2 mb-1", getProgressColor())}
-          />
-          <div className="text-xs text-muted-foreground/80 mt-1 mb-8">
+          {/* Enhanced progress bar with subtle styling */}
+          <div className="w-full h-2.5 mb-1 bg-secondary/40 rounded-full overflow-hidden shadow-inner backdrop-blur-sm">
+            <div
+              className={cn(
+                "h-full transition-all ease-linear duration-1000 rounded-full shadow-sm",
+                getProgressColor()
+              )}
+              style={progressWidth}
+            />
+          </div>
+
+          <div className="text-xs text-muted-foreground/70 mt-1.5 mb-8">
             Initial time: {totalMinutes} min
           </div>
 
-          <div className="flex gap-4">
+          <div className="flex gap-5">
             <Button
               variant="outline"
               size="icon"
-              className="h-11 w-11 rounded-full border-border/60 bg-muted/30 hover:bg-muted/50 shadow-sm"
+              className="h-11 w-11 rounded-full border-border/60 bg-muted/20 hover:bg-muted/40 shadow-sm transition-colors"
               onClick={resetTimer}
               title="Reset timer"
             >
@@ -166,8 +205,11 @@ const TaskCountdown = ({
               variant={isPaused ? "default" : "secondary"}
               size="icon"
               className={cn(
-                "h-14 w-14 rounded-full transition-transform active:scale-95 shadow-md",
-                !isPaused && "bg-primary/90"
+                "h-14 w-14 rounded-full transition-all active:scale-95 shadow-md",
+                isPaused
+                  ? "bg-primary hover:bg-primary/90"
+                  : "bg-secondary hover:bg-secondary/90",
+                !isComplete && !isPaused && "animate-subtle-pulse"
               )}
               onClick={togglePause}
               disabled={isComplete}
@@ -183,7 +225,7 @@ const TaskCountdown = ({
             <Button
               variant="outline"
               size="icon"
-              className="h-11 w-11 rounded-full border-border/60 bg-muted/30 hover:bg-muted/50 shadow-sm"
+              className="h-11 w-11 rounded-full border-border/60 bg-muted/20 hover:bg-muted/40 shadow-sm transition-colors"
               onClick={onClose}
               title="Close timer"
             >

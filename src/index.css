@@ -44,6 +44,21 @@
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
     --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.06);
     --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.03), 0 4px 6px rgba(0, 0, 0, 0.05);
+
+    /* Task counter colors - subtle and sophisticated */
+    --counter-short: 220 70% 60%;
+    --counter-mid: 260 60% 60%;
+    --counter-long: 320 50% 60%;
+  }
+
+  /* Hide scrollbar utility class */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 
   * {
@@ -59,6 +74,40 @@
     @apply bg-white/70 backdrop-blur-md border border-white/10 shadow-sm;
   }
 
+  /* Task counter styling */
+  .task-counter {
+    @apply inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium;
+  }
+
+  .task-counter-short {
+    @apply bg-[hsl(var(--counter-short)/0.15)] text-[hsl(var(--counter-short))];
+  }
+
+  .task-counter-mid {
+    @apply bg-[hsl(var(--counter-mid)/0.15)] text-[hsl(var(--counter-mid))];
+  }
+
+  .task-counter-long {
+    @apply bg-[hsl(var(--counter-long)/0.15)] text-[hsl(var(--counter-long))];
+  }
+
+  /* Time counter styling */
+  .time-counter {
+    @apply text-xs font-medium text-muted-foreground flex items-center gap-1;
+  }
+
+  .time-counter-short {
+    @apply text-emerald-600;
+  }
+
+  .time-counter-mid {
+    @apply text-amber-600;
+  }
+
+  .time-counter-long {
+    @apply text-rose-600;
+  }
+
   .task-card {
     @apply p-3 rounded-xl transition-all duration-300 border border-border/40 bg-white/90 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)];
     animation: var(--entrance-animation, scale-in 0.2s ease-out);
@@ -72,30 +121,43 @@
     @apply p-4 rounded-xl min-h-[200px] flex flex-col border border-border/60 bg-white/90 shadow-[var(--shadow-sm)];
   }
 
-  /* Improved importance styling - more subtle and modern */
+  /* Improved importance styling with subtle gradients */
   .importance-low {
-    @apply border-l-[3px] border-importance-low bg-gradient-to-r from-[#e6f7ef]/50 to-white/90 transition-colors duration-300;
+    @apply border-l-[3px] border-emerald-400/70 bg-gradient-to-r from-emerald-50/30 to-white/95;
   }
 
   .importance-medium {
-    @apply border-l-[3px] border-importance-medium bg-gradient-to-r from-[#fef5e7]/50 to-white/90 transition-colors duration-300;
+    @apply border-l-[3px] border-amber-400/70 bg-gradient-to-r from-amber-50/30 to-white/95;
   }
 
   .importance-high {
-    @apply border-l-[3px] border-importance-high bg-gradient-to-r from-[#fdecec]/50 to-white/90 transition-colors duration-300;
+    @apply border-l-[3px] border-rose-400/70 bg-gradient-to-r from-rose-50/30 to-white/95;
+  }
+
+  /* Badge styling improvements */
+  .importance-badge-low {
+    @apply bg-emerald-50 text-emerald-700 border-emerald-100;
+  }
+
+  .importance-badge-medium {
+    @apply bg-amber-50 text-amber-700 border-amber-100;
+  }
+
+  .importance-badge-high {
+    @apply bg-rose-50 text-rose-700 border-rose-100;
   }
 
   /* Text color classes for dropdown menu */
   .importance-low-text {
-    @apply text-[hsl(var(--importance-low))];
+    @apply text-emerald-600;
   }
 
   .importance-medium-text {
-    @apply text-[hsl(var(--importance-medium))];
+    @apply text-amber-600;
   }
 
   .importance-high-text {
-    @apply text-[hsl(var(--importance-high))];
+    @apply text-rose-600;
   }
 
   .bucket-title {
@@ -167,5 +229,13 @@
 
   .btn-secondary {
     @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-lg px-4 py-2;
+  }
+
+  /* Create button styling */
+  .create-button {
+    @apply bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 
+           text-white font-medium transition-all duration-200 shadow-md 
+           hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] 
+           flex items-center justify-center gap-2;
   }
 }

@@ -19,6 +19,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import TaskCountdown from "./TaskCountdown";
+import { cn } from "@/lib/utils";
 
 interface TaskCardProps {
   task: Task;
@@ -164,11 +165,11 @@ const TaskCard = ({
   const getImportanceBadgeClass = () => {
     switch (task.importance) {
       case "Low":
-        return "bg-importance-badge-low/20 text-importance-low hover:bg-importance-low/30";
+        return "importance-badge-low";
       case "Medium":
-        return "bg-importance-badge-medium/20 text-importance-medium hover:bg-importance-medium/30";
+        return "importance-badge-medium";
       case "High":
-        return "bg-importance-badge-high/20 text-importance-high hover:bg-importance-high/30";
+        return "importance-badge-high";
       default:
         return "";
     }
@@ -225,19 +226,19 @@ const TaskCard = ({
         draggable={!isCompleted}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
-        className={`task-card ${importanceClass} ${
-          task.completed || isCompleted ? "opacity-60 bg-muted/30" : ""
+        className={`task-card ${importanceClass} animate-scale-in mb-3 rounded-md border hover:shadow-sm transition-all ${
+          task.completed || isCompleted ? "opacity-70 bg-muted/30" : ""
         }`}
       >
-        <div className="p-1.5">
+        <div className="p-1">
           {/* Main Task Content - Grid Structure */}
-          <div className="grid grid-cols-[auto_1fr] gap-x-3">
+          <div className="grid grid-cols-[auto_1fr] gap-x-2.5">
             {/* Column 1: Checkbox */}
             <div className="flex-shrink-0 mt-0.5">
               {!isEditingTime ? (
                 <button
                   onClick={handleCompletionToggle}
-                  className="flex-shrink-0 transition-colors"
+                  className="flex-shrink-0"
                   disabled={isCompleted}
                   aria-label={
                     isCompleted ? "Task completed" : "Mark as completed"
@@ -245,9 +246,9 @@ const TaskCard = ({
                   title={isCompleted ? "Task completed" : "Mark as completed"}
                 >
                   {task.completed || isCompleted ? (
-                    <CheckSquare className="h-[18px] w-[18px] text-primary/90" />
+                    <CheckSquare className="h-[18px] w-[18px] text-primary" />
                   ) : (
-                    <Square className="h-[18px] w-[18px] text-muted-foreground/60 hover:text-primary hover:border-primary transition-colors" />
+                    <Square className="h-[18px] w-[18px] text-muted-foreground hover:text-primary hover:border-primary transition-colors" />
                   )}
                 </button>
               ) : (
@@ -271,7 +272,7 @@ const TaskCard = ({
                   </h3>
                   {/* Only show main_task if not in a group view */}
                   {task.main_task && !inGroupView && (
-                    <p className="text-xs text-muted-foreground/80 mt-0.5 leading-tight">
+                    <p className="text-xs text-muted-foreground mt-0.5 leading-tight">
                       {task.main_task}
                     </p>
                   )}
@@ -281,7 +282,7 @@ const TaskCard = ({
                 {!isEditingTime && (
                   <button
                     onClick={() => onDelete(task.id)}
-                    className="absolute right-0 top-0 text-muted-foreground/40 hover:text-destructive transition-colors hover:bg-destructive/10 rounded-full p-0.5"
+                    className="absolute right-0 top-0 text-muted-foreground/40 hover:text-destructive transition-colors hover:bg-muted/20 rounded-sm p-0.5"
                     aria-label="Delete task"
                     title="Delete task"
                   >
@@ -292,13 +293,7 @@ const TaskCard = ({
 
               {/* Time Estimate Slider - Only show when editing */}
               {allowTimeEstimate && isEditingTime && (
-                <div className="mt-2 bg-accent/5 p-3 rounded-lg border border-accent/10">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Clock className="h-3 w-3 text-muted-foreground" />
-                    <span className="text-xs font-medium text-muted-foreground">
-                      Time Estimate (minutes):
-                    </span>
-                  </div>
+                <div className="mt-2 bg-accent/5 p-3 rounded-md border border-accent/10">
                   <div className="flex items-center gap-2.5">
                     <Slider
                       className="flex-grow"
@@ -339,14 +334,14 @@ const TaskCard = ({
                 </div>
               )}
 
-              {/* Badges row - aligned with the content */}
+              {/* Badges row - using inline-flex and nowrap to prevent wrapping */}
               {(!isEditingTime || !allowTimeEstimate) && (
-                <div className="flex flex-wrap gap-2 mt-2">
+                <div className="inline-flex items-center flex-nowrap overflow-x-auto space-x-1.5 mt-1.5 pb-0.5 max-w-full no-scrollbar">
                   {/* Importance badge */}
-                  <div ref={importanceRef} className="relative">
+                  <div ref={importanceRef} className="relative flex-shrink-0">
                     <Badge
                       variant="outline"
-                      className={`h-[22px] text-xs px-2.5 py-0 rounded-full border-transparent shadow-sm ${
+                      className={`inline-flex items-center h-5 text-xs px-1.5 py-0 rounded-full border-transparent ${
                         !isCompleted ? "cursor-pointer hover:bg-opacity-80" : ""
                       } ${getImportanceBadgeClass()}`}
                       onClick={handleImportanceClick}
@@ -357,9 +352,9 @@ const TaskCard = ({
                       }
                     >
                       {getImportanceIcon()}
-                      <span className="ml-1">{task.importance}</span>
+                      <span className="ml-0.5">{task.importance}</span>
                       {!isCompleted && (
-                        <Edit2 className="h-2.5 w-2.5 ml-1 opacity-50" />
+                        <Edit2 className="h-2.5 w-2.5 ml-0.5 opacity-50" />
                       )}
                     </Badge>
                   </div>
@@ -368,22 +363,22 @@ const TaskCard = ({
                   {!hideCategory && (
                     <Badge
                       variant="outline"
-                      className="h-[22px] text-xs px-2.5 py-0 rounded-full bg-primary/10 text-primary border-transparent shadow-sm"
+                      className="inline-flex items-center h-5 text-xs px-1.5 py-0 rounded-full bg-indigo-50/80 text-indigo-600 border-indigo-100 flex-shrink-0"
                       title="Category"
                     >
-                      <Tag className="h-3 w-3 mr-1" />
+                      <Tag className="h-2.5 w-2.5 mr-0.5" />
                       {task.category}
                     </Badge>
                   )}
 
                   {/* Time estimate badge with countdown button */}
                   {task.time_estimate > 0 && !isEditingTime && (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 flex-shrink-0">
                       <Badge
                         variant="outline"
-                        className={`h-[22px] text-xs px-2.5 py-0 rounded-full bg-accent/20 text-accent-foreground border-transparent shadow-sm ${
+                        className={`inline-flex items-center h-5 text-xs px-1.5 py-0 rounded-full bg-blue-50/80 text-blue-600 border-blue-100 ${
                           allowTimeEstimate && !isCompleted
-                            ? "cursor-pointer hover:bg-accent/30"
+                            ? "cursor-pointer hover:bg-blue-100/70"
                             : ""
                         }`}
                         onClick={() => {
@@ -397,10 +392,13 @@ const TaskCard = ({
                             : "Time estimate"
                         }
                       >
-                        <Clock className="h-3 w-3 mr-1" />
-                        {task.time_estimate} min
+                        <Clock
+                          className="h-2.5 w-2.5 mr-0.5"
+                          style={{ color: "#6B7280" }}
+                        />
+                        <span>{task.time_estimate} min</span>
                         {allowTimeEstimate && !isCompleted && (
-                          <Edit2 className="h-2.5 w-2.5 ml-1 opacity-50" />
+                          <Edit2 className="h-2.5 w-2.5 ml-0.5 opacity-50" />
                         )}
                       </Badge>
 
@@ -408,11 +406,11 @@ const TaskCard = ({
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-[22px] w-[22px] rounded-full p-0 flex items-center justify-center bg-primary/10 hover:bg-primary/20 border-0 shadow-sm"
+                          className="h-5 w-5 rounded-full p-0 flex items-center justify-center bg-blue-50/80 hover:bg-blue-100/70 text-blue-600 border-blue-100"
                           onClick={handleOpenCountdown}
                           title="Start countdown timer"
                         >
-                          <Timer className="h-3 w-3 text-primary" />
+                          <Timer className="h-2.5 w-2.5" />
                         </Button>
                       )}
                     </div>
@@ -425,13 +423,16 @@ const TaskCard = ({
                     !isEditingTime && (
                       <Badge
                         variant="outline"
-                        className="h-[22px] text-xs px-2.5 py-0 rounded-full bg-accent/20 text-accent-foreground cursor-pointer hover:bg-accent/30 border-transparent shadow-sm"
+                        className="inline-flex items-center h-5 text-xs px-1.5 py-0 rounded-full bg-blue-50/80 text-blue-600 cursor-pointer hover:bg-blue-100/70 border-blue-100 flex-shrink-0"
                         onClick={() => setIsEditingTime(true)}
                         title="Add time"
                       >
-                        <Clock className="h-3 w-3 mr-1" />
-                        Add time
-                        <Edit2 className="h-2.5 w-2.5 ml-1 opacity-50" />
+                        <Clock
+                          className="h-2.5 w-2.5 mr-0.5"
+                          style={{ color: "#6B7280" }}
+                        />
+                        <span>Add time</span>
+                        <Edit2 className="h-2.5 w-2.5 ml-0.5 opacity-50" />
                       </Badge>
                     )}
                 </div>
