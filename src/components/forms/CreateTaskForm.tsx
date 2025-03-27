@@ -228,27 +228,32 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
       }}
     >
       <DialogTrigger asChild>
-        <Button className="w-full mb-8" variant="outline">
+        <Button
+          className="w-full mb-8 h-11 rounded-xl bg-gradient-to-r from-primary/90 to-primary shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-all"
+          variant="default"
+        >
           <Plus className="mr-2 h-4 w-4" /> Create New Task
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[550px]">
+      <DialogContent className="sm:max-w-[580px] p-6 form-card">
         <DialogHeader>
-          <DialogTitle>New Task</DialogTitle>
+          <DialogTitle className="text-xl font-medium tracking-tight text-center">
+            New Task
+          </DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-4"
+            className="space-y-5 mt-3"
           >
             <FormField
               control={form.control}
               name="main_task"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-1.5">
-                    <Briefcase className="h-4 w-4" />
+                  <FormLabel className="flex items-center gap-1.5 text-sm font-medium">
+                    <Briefcase className="h-4 w-4 text-primary/80" />
                     Project / Main Task
                   </FormLabel>
                   <div className="relative">
@@ -257,6 +262,7 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
                         ref={mainTaskRef}
                         placeholder="What is the overall task or project?"
                         autoComplete="off"
+                        className="h-10 rounded-lg focus-visible:ring-primary/30"
                         {...field}
                         onMouseDown={() => handleInputMouseDown("main")}
                         onChange={(e) => {
@@ -278,12 +284,12 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
 
                     {/* Only show dropdown when user has explicitly interacted with input */}
                     {hasClickedMainTask && mainTaskOptions.length > 0 && (
-                      <div className="absolute top-full left-0 z-10 w-full mt-1 bg-background rounded-md border shadow-md">
+                      <div className="absolute top-full left-0 z-10 w-full mt-1 bg-background rounded-lg border shadow-[var(--shadow-md)] border-border/50 animate-fade-in">
                         <div className="p-1 max-h-[200px] overflow-y-auto">
                           {getMainTaskDisplayOptions().map((option) => (
                             <div
                               key={option}
-                              className="flex items-center px-2 py-1.5 text-sm rounded cursor-pointer hover:bg-muted"
+                              className="flex items-center px-3 py-2 text-sm rounded-md cursor-pointer hover:bg-muted/50"
                               onMouseDown={(e) => {
                                 // Prevent blur handler from firing before click
                                 e.preventDefault();
@@ -292,7 +298,7 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
                             >
                               <Check
                                 className={cn(
-                                  "mr-2 h-4 w-4",
+                                  "mr-2 h-4 w-4 text-primary",
                                   field.value === option
                                     ? "opacity-100"
                                     : "opacity-0"
@@ -315,14 +321,15 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
               name="sub_task"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-1.5">
-                    <ListChecks className="h-4 w-4" />
+                  <FormLabel className="flex items-center gap-1.5 text-sm font-medium">
+                    <ListChecks className="h-4 w-4 text-primary/80" />
                     Subtask
                   </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="What specific step needs to be done?"
                       autoComplete="off"
+                      className="h-10 rounded-lg focus-visible:ring-primary/30"
                       {...field}
                     />
                   </FormControl>
@@ -336,8 +343,8 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
               name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-1.5">
-                    <Tag className="h-4 w-4" />
+                  <FormLabel className="flex items-center gap-1.5 text-sm font-medium">
+                    <Tag className="h-4 w-4 text-primary/80" />
                     Category
                   </FormLabel>
                   <div className="relative">
@@ -346,6 +353,7 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
                         ref={categoryRef}
                         placeholder="Work, Personal, Health..."
                         autoComplete="off"
+                        className="h-10 rounded-lg focus-visible:ring-primary/30"
                         {...field}
                         onMouseDown={() => handleInputMouseDown("category")}
                         onChange={(e) => {
@@ -367,12 +375,12 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
 
                     {/* Category suggestions dropdown */}
                     {hasClickedCategory && categoryOptions.length > 0 && (
-                      <div className="absolute top-full left-0 z-10 w-full mt-1 bg-background rounded-md border shadow-md">
+                      <div className="absolute top-full left-0 z-10 w-full mt-1 bg-background rounded-lg border shadow-[var(--shadow-md)] border-border/50 animate-fade-in">
                         <div className="p-1 max-h-[200px] overflow-y-auto">
                           {getCategoryDisplayOptions().map((option) => (
                             <div
                               key={option}
-                              className="flex items-center px-2 py-1.5 text-sm rounded cursor-pointer hover:bg-muted"
+                              className="flex items-center px-3 py-2 text-sm rounded-md cursor-pointer hover:bg-muted/50"
                               onMouseDown={(e) => {
                                 // Prevent blur handler from firing before click
                                 e.preventDefault();
@@ -381,7 +389,7 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
                             >
                               <Check
                                 className={cn(
-                                  "mr-2 h-4 w-4",
+                                  "mr-2 h-4 w-4 text-primary",
                                   field.value === option
                                     ? "opacity-100"
                                     : "opacity-0"
@@ -404,15 +412,15 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
               name="time_estimate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-1.5">
-                    <Timer className="h-4 w-4" />
+                  <FormLabel className="flex items-center gap-1.5 text-sm font-medium">
+                    <Timer className="h-4 w-4 text-primary/80" />
                     Time Estimate (minutes){" "}
                     <span className="text-muted-foreground text-xs ml-1">
                       (Optional)
                     </span>
                   </FormLabel>
-                  <div className="bg-accent/5 p-3 rounded-md border border-accent/10">
-                    <div className="flex items-center gap-2.5">
+                  <div className="bg-accent/5 p-4 rounded-lg border border-accent/10 shadow-sm">
+                    <div className="flex items-center gap-3">
                       <Slider
                         className="flex-grow"
                         min={0}
@@ -426,7 +434,7 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
                           ref={timeInputRef}
                           type="number"
                           min={0}
-                          className="w-16 h-8 text-xs text-center"
+                          className="w-16 h-9 text-xs text-center rounded-md"
                           value={timeEstimate || 0}
                           onChange={(e) => {
                             const value = parseInt(e.target.value) || 0;
@@ -442,14 +450,14 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-5">
               <FormField
                 control={form.control}
                 name="importance"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center gap-1.5">
-                      <AlertCircle className="h-4 w-4" />
+                    <FormLabel className="flex items-center gap-1.5 text-sm font-medium">
+                      <AlertCircle className="h-4 w-4 text-primary/80" />
                       Importance
                     </FormLabel>
                     <Select
@@ -457,11 +465,11 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger className="importance-select">
+                        <SelectTrigger className="importance-select h-10 rounded-lg">
                           <SelectValue placeholder="Select importance" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="rounded-lg">
                         <SelectItem value="Low" className="importance-low-text">
                           Low
                         </SelectItem>
@@ -489,8 +497,8 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
                 name="bucket"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="flex items-center gap-1.5">
-                      <Clock className="h-4 w-4" />
+                    <FormLabel className="flex items-center gap-1.5 text-sm font-medium">
+                      <Clock className="h-4 w-4 text-primary/80" />
                       Initial Bucket
                     </FormLabel>
                     <Select
@@ -498,11 +506,11 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
                       defaultValue={field.value}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="h-10 rounded-lg">
                           <SelectValue placeholder="Select bucket" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="rounded-lg">
                         <SelectItem value="Short-Term">Short-Term</SelectItem>
                         <SelectItem value="Mid-Term">Mid-Term</SelectItem>
                         <SelectItem value="Long-Term">Long-Term</SelectItem>
@@ -517,15 +525,18 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
               />
             </div>
 
-            <DialogFooter className="pt-2">
+            <DialogFooter className="pt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsOpen(false)}
+                className="h-10 rounded-lg border-border/70"
               >
                 Cancel
               </Button>
-              <Button type="submit">Create Task</Button>
+              <Button type="submit" className="h-10 rounded-lg bg-primary px-5">
+                Create Task
+              </Button>
             </DialogFooter>
           </form>
         </Form>

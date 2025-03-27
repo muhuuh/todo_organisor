@@ -7,7 +7,6 @@ import TimeVisualization from "@/components/charts/TimeVisualization";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { Navbar } from "@/components/layout/Navbar";
-import { ChevronRight } from "lucide-react";
 
 const Index = () => {
   const {
@@ -98,14 +97,9 @@ const Index = () => {
 
         <CreateTaskForm onSubmit={addTask} />
 
-        <section className="mb-12">
-          <div className="flex items-center mb-6">
-            <div className="h-8 w-1 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full mr-3"></div>
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Task Category Buckets
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <section className="mb-8">
+          <h2 className="text-xl font-medium mb-4">Task Category Buckets</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <TaskBucket
               title="Short-Term Tasks"
               type="Short-Term"
@@ -146,13 +140,8 @@ const Index = () => {
         </section>
 
         <section className="mb-8">
-          <div className="flex items-center mb-6">
-            <div className="h-8 w-1 bg-gradient-to-b from-green-500 to-emerald-600 rounded-full mr-3"></div>
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-700 bg-clip-text text-transparent">
-              Planning Timeframes
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <h2 className="text-xl font-medium mb-4">Planning Timeframes</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <TaskBucket
               title="Today"
               type="Today"
@@ -164,7 +153,7 @@ const Index = () => {
               onUpdateTimeEstimate={updateTimeEstimate}
               onToggleCompletion={toggleTaskCompletion}
               onUpdateImportance={updateTaskImportance}
-              allowTimeEstimate={true}
+              allowTimeEstimate
             />
             <TaskBucket
               title="Tomorrow"
@@ -177,7 +166,7 @@ const Index = () => {
               onUpdateTimeEstimate={updateTimeEstimate}
               onToggleCompletion={toggleTaskCompletion}
               onUpdateImportance={updateTaskImportance}
-              allowTimeEstimate={true}
+              allowTimeEstimate
             />
             <TaskBucket
               title="This Week"
@@ -190,12 +179,13 @@ const Index = () => {
               onUpdateTimeEstimate={updateTimeEstimate}
               onToggleCompletion={toggleTaskCompletion}
               onUpdateImportance={updateTaskImportance}
-              allowTimeEstimate={true}
+              allowTimeEstimate
             />
           </div>
         </section>
 
-        <section className="mb-10">
+        <section>
+          <h2 className="text-xl font-medium mb-4">Time Visualization</h2>
           <TimeVisualization tasks={tasks} />
         </section>
       </div>

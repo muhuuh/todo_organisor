@@ -4,16 +4,17 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222.2 84% 4.9%;
+    /* Modern color palette with softer tones */
+    --background: 210 40% 98.5%;
+    --foreground: 224 71.4% 4.1%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 224 71.4% 4.1%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 224 71.4% 4.1%;
 
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 220.9 39.3% 11%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -28,26 +29,21 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
     --ring: 222.2 84% 4.9%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --importance-low: 142.1 76.2% 36.3%;
-    --importance-medium: 35.5 91.7% 54.9%;
-    --importance-high: 0 72.2% 50.6%;
+    /* Modern, more subtle importance indicators */
+    --importance-low: 142.1 46.2% 55.3%;
+    --importance-medium: 35.5 91.7% 67.9%;
+    --importance-high: 0 72.2% 58.6%;
 
-    /* Bucket color variables */
-    --color-blue: #4285f4;
-    --color-red: #ea4335;
-    --color-green: #34a853;
-    --color-yellow: #fbbc05;
-    --color-purple: #8429f6;
-    --color-indigo: #5e5ce6;
-    --color-pink: #ff61c6;
-    --color-orange: #ff6d01;
-    --color-gray: #5f6368;
+    /* Shadow values */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.03), 0 4px 6px rgba(0, 0, 0, 0.05);
   }
 
   * {
@@ -55,34 +51,38 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-gradient-to-br from-background to-background/80 text-foreground min-h-screen;
   }
 
-  /* Glass morphism */
+  /* Modern glass morphism */
   .glass {
-    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-sm;
+    @apply bg-white/70 backdrop-blur-md border border-white/10 shadow-sm;
   }
 
   .task-card {
-    @apply glass p-4 rounded-lg transition-all duration-300 hover:shadow-md cursor-grab active:cursor-grabbing;
+    @apply p-3 rounded-xl transition-all duration-300 border border-border/40 bg-white/90 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)];
     animation: var(--entrance-animation, scale-in 0.2s ease-out);
   }
 
-  .task-bucket {
-    @apply glass p-4 rounded-lg min-h-[200px] flex flex-col;
+  .task-card:hover {
+    @apply transform-gpu translate-y-[-2px] bg-white/95;
   }
 
-  /* Improved importance styling */
+  .task-bucket {
+    @apply p-4 rounded-xl min-h-[200px] flex flex-col border border-border/60 bg-white/90 shadow-[var(--shadow-sm)];
+  }
+
+  /* Improved importance styling - more subtle and modern */
   .importance-low {
-    @apply border-l-4 border-importance-low bg-[#e6f7ef] transition-colors duration-300;
+    @apply border-l-[3px] border-importance-low bg-gradient-to-r from-[#e6f7ef]/50 to-white/90 transition-colors duration-300;
   }
 
   .importance-medium {
-    @apply border-l-4 border-importance-medium bg-[#fef5e7] transition-colors duration-300;
+    @apply border-l-[3px] border-importance-medium bg-gradient-to-r from-[#fef5e7]/50 to-white/90 transition-colors duration-300;
   }
 
   .importance-high {
-    @apply border-l-4 border-importance-high bg-[#fdecec] transition-colors duration-300;
+    @apply border-l-[3px] border-importance-high bg-gradient-to-r from-[#fdecec]/50 to-white/90 transition-colors duration-300;
   }
 
   /* Text color classes for dropdown menu */
@@ -99,7 +99,12 @@
   }
 
   .bucket-title {
-    @apply text-sm font-medium text-muted-foreground mb-2;
+    @apply text-sm font-medium text-muted-foreground/90 mb-2;
+  }
+
+  /* Badge improvements */
+  .badge {
+    @apply rounded-full px-2 py-0.5 text-xs font-medium;
   }
 
   /* Enhanced animations */
@@ -141,12 +146,26 @@
     animation: completed-pulse 0.5s ease-out forwards;
   }
 
-  /* Main task grouping styles */
+  /* Main task grouping styles - more polish */
   .main-task-group {
-    @apply border border-border rounded-md mb-3 transition-all duration-200;
+    @apply border border-border/70 rounded-xl mb-3 transition-all duration-200 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)];
   }
 
   .main-task-group-header {
-    @apply flex justify-between items-center p-2 hover:bg-accent/50 rounded-t-md cursor-pointer;
+    @apply flex justify-between items-center p-2.5 hover:bg-accent/30 rounded-t-xl cursor-pointer;
+  }
+
+  /* Better form styling */
+  .form-card {
+    @apply bg-white rounded-xl shadow-[var(--shadow-md)] border border-border/50;
+  }
+
+  /* Button improvements */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg px-4 py-2;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-lg px-4 py-2;
   }
 }

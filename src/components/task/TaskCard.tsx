@@ -164,11 +164,11 @@ const TaskCard = ({
   const getImportanceBadgeClass = () => {
     switch (task.importance) {
       case "Low":
-        return "bg-importance-badge-low text-importance-low hover:bg-importance-low/20";
+        return "bg-importance-badge-low/20 text-importance-low hover:bg-importance-low/30";
       case "Medium":
-        return "bg-importance-badge-medium text-importance-medium hover:bg-importance-medium/20";
+        return "bg-importance-badge-medium/20 text-importance-medium hover:bg-importance-medium/30";
       case "High":
-        return "bg-importance-badge-high text-importance-high hover:bg-importance-high/20";
+        return "bg-importance-badge-high/20 text-importance-high hover:bg-importance-high/30";
       default:
         return "";
     }
@@ -225,19 +225,19 @@ const TaskCard = ({
         draggable={!isCompleted}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
-        className={`task-card ${importanceClass} animate-scale-in mb-3 rounded-md border  hover:shadow-sm transition-all ${
-          task.completed || isCompleted ? "opacity-70 bg-muted/30" : ""
+        className={`task-card ${importanceClass} ${
+          task.completed || isCompleted ? "opacity-60 bg-muted/30" : ""
         }`}
       >
-        <div className="p-1 ">
+        <div className="p-1.5">
           {/* Main Task Content - Grid Structure */}
-          <div className="grid grid-cols-[auto_1fr] gap-x-2.5 ">
+          <div className="grid grid-cols-[auto_1fr] gap-x-3">
             {/* Column 1: Checkbox */}
             <div className="flex-shrink-0 mt-0.5">
               {!isEditingTime ? (
                 <button
                   onClick={handleCompletionToggle}
-                  className="flex-shrink-0"
+                  className="flex-shrink-0 transition-colors"
                   disabled={isCompleted}
                   aria-label={
                     isCompleted ? "Task completed" : "Mark as completed"
@@ -245,9 +245,9 @@ const TaskCard = ({
                   title={isCompleted ? "Task completed" : "Mark as completed"}
                 >
                   {task.completed || isCompleted ? (
-                    <CheckSquare className="h-[18px] w-[18px] text-primary" />
+                    <CheckSquare className="h-[18px] w-[18px] text-primary/90" />
                   ) : (
-                    <Square className="h-[18px] w-[18px] text-muted-foreground hover:text-primary hover:border-primary transition-colors" />
+                    <Square className="h-[18px] w-[18px] text-muted-foreground/60 hover:text-primary hover:border-primary transition-colors" />
                   )}
                 </button>
               ) : (
@@ -256,7 +256,7 @@ const TaskCard = ({
             </div>
 
             {/* Column 2: Content and Badges */}
-            <div className="min-w-0 relative ">
+            <div className="min-w-0 relative">
               {/* Task Title Area */}
               <div className="relative pr-5">
                 <div
@@ -271,7 +271,7 @@ const TaskCard = ({
                   </h3>
                   {/* Only show main_task if not in a group view */}
                   {task.main_task && !inGroupView && (
-                    <p className="text-xs text-muted-foreground mt-0.5 leading-tight">
+                    <p className="text-xs text-muted-foreground/80 mt-0.5 leading-tight">
                       {task.main_task}
                     </p>
                   )}
@@ -281,7 +281,7 @@ const TaskCard = ({
                 {!isEditingTime && (
                   <button
                     onClick={() => onDelete(task.id)}
-                    className="absolute right-0 top-0 text-muted-foreground/40 hover:text-destructive transition-colors hover:bg-muted/20 rounded-sm p-0.5"
+                    className="absolute right-0 top-0 text-muted-foreground/40 hover:text-destructive transition-colors hover:bg-destructive/10 rounded-full p-0.5"
                     aria-label="Delete task"
                     title="Delete task"
                   >
@@ -292,7 +292,7 @@ const TaskCard = ({
 
               {/* Time Estimate Slider - Only show when editing */}
               {allowTimeEstimate && isEditingTime && (
-                <div className="mt-2 bg-accent/5 p-3 rounded-md border border-accent/10">
+                <div className="mt-2 bg-accent/5 p-3 rounded-lg border border-accent/10">
                   <div className="flex items-center gap-2 mb-2">
                     <Clock className="h-3 w-3 text-muted-foreground" />
                     <span className="text-xs font-medium text-muted-foreground">
@@ -341,12 +341,12 @@ const TaskCard = ({
 
               {/* Badges row - aligned with the content */}
               {(!isEditingTime || !allowTimeEstimate) && (
-                <div className="flex justify-aroundgap-2  mt-1.5 0">
+                <div className="flex flex-wrap gap-2 mt-2">
                   {/* Importance badge */}
                   <div ref={importanceRef} className="relative">
                     <Badge
                       variant="outline"
-                      className={`inline-flex items-center h-5 text-xs px-2 py-0 rounded-full border-transparent ${
+                      className={`h-[22px] text-xs px-2.5 py-0 rounded-full border-transparent shadow-sm ${
                         !isCompleted ? "cursor-pointer hover:bg-opacity-80" : ""
                       } ${getImportanceBadgeClass()}`}
                       onClick={handleImportanceClick}
@@ -368,7 +368,7 @@ const TaskCard = ({
                   {!hideCategory && (
                     <Badge
                       variant="outline"
-                      className="inline-flex items-center h-5 text-xs px-2 py-0 rounded-full bg-primary/10 text-primary border-transparent"
+                      className="h-[22px] text-xs px-2.5 py-0 rounded-full bg-primary/10 text-primary border-transparent shadow-sm"
                       title="Category"
                     >
                       <Tag className="h-3 w-3 mr-1" />
@@ -381,7 +381,7 @@ const TaskCard = ({
                     <div className="flex items-center gap-1">
                       <Badge
                         variant="outline"
-                        className={`inline-flex items-center h-5 text-xs px-2 py-0 rounded-full bg-accent/20 text-accent-foreground border-transparent ${
+                        className={`h-[22px] text-xs px-2.5 py-0 rounded-full bg-accent/20 text-accent-foreground border-transparent shadow-sm ${
                           allowTimeEstimate && !isCompleted
                             ? "cursor-pointer hover:bg-accent/30"
                             : ""
@@ -408,7 +408,7 @@ const TaskCard = ({
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-5 w-5 rounded-full p-0 flex items-center justify-center bg-primary/10 hover:bg-primary/20 border-0"
+                          className="h-[22px] w-[22px] rounded-full p-0 flex items-center justify-center bg-primary/10 hover:bg-primary/20 border-0 shadow-sm"
                           onClick={handleOpenCountdown}
                           title="Start countdown timer"
                         >
@@ -425,7 +425,7 @@ const TaskCard = ({
                     !isEditingTime && (
                       <Badge
                         variant="outline"
-                        className="inline-flex items-center h-5 text-xs px-2 py-0 rounded-full bg-accent/20 text-accent-foreground cursor-pointer hover:bg-accent/30 border-transparent"
+                        className="h-[22px] text-xs px-2.5 py-0 rounded-full bg-accent/20 text-accent-foreground cursor-pointer hover:bg-accent/30 border-transparent shadow-sm"
                         onClick={() => setIsEditingTime(true)}
                         title="Add time"
                       >
