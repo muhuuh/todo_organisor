@@ -139,28 +139,30 @@ const TaskCountdown = ({
           </h3>
 
           <div className="relative w-44 h-44 flex items-center justify-center mb-8">
-            {/* Circular background - Enhanced with multi-layered effect */}
+            {/* Circular background with more distinct border */}
             <div
               className={cn(
-                "absolute inset-0 rounded-full bg-accent/5 border-2 border-accent/10 shadow-inner",
+                "absolute inset-0 rounded-full bg-accent/5 border-2 shadow-inner",
                 getTimerRingColorClass()
               )}
             ></div>
 
-            {/* Inner subtle glow */}
-            <div className="absolute inset-2 rounded-full bg-background shadow-sm"></div>
+            {/* Simplified inner layer for better contrast */}
+            <div className="absolute inset-3 rounded-full bg-muted/30"></div>
 
-            {/* Pulse animation when active */}
+            {/* Additional contrasting layer for text background */}
+            <div className="absolute inset-[25%] rounded-full bg-background"></div>
+
+            {/* Pulse animation when active - made lighter */}
             {!isPaused && !isComplete && (
               <div className="absolute inset-0 rounded-full bg-primary/5 animate-pulse"></div>
             )}
 
-            {/* Countdown display */}
+            {/* Countdown display with enhanced visibility */}
             <div
               className={cn(
-                "text-5xl font-bold tracking-tight transition-colors z-10 relative",
-                getTimerColor(),
-                isComplete ? "scale-105 transition-transform duration-300" : ""
+                "relative z-10 text-6xl font-bold tracking-tight text-foreground",
+                getTimerColor()
               )}
             >
               {formatTime(secondsLeft)}
@@ -175,8 +177,8 @@ const TaskCountdown = ({
             )}
           </div>
 
-          {/* Enhanced progress bar with subtle styling */}
-          <div className="w-full h-2.5 mb-1 bg-secondary/40 rounded-full overflow-hidden shadow-inner backdrop-blur-sm">
+          {/* Enhanced progress bar with better contrast */}
+          <div className="w-full h-3 mb-1 bg-secondary/40 rounded-full overflow-hidden shadow-inner">
             <div
               className={cn(
                 "h-full transition-all ease-linear duration-1000 rounded-full shadow-sm",
@@ -186,7 +188,7 @@ const TaskCountdown = ({
             />
           </div>
 
-          <div className="text-xs text-muted-foreground/70 mt-1.5 mb-8">
+          <div className="text-xs text-muted-foreground/80 mt-1.5 mb-8">
             Initial time: {totalMinutes} min
           </div>
 
