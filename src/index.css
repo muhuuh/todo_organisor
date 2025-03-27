@@ -37,6 +37,17 @@
     --importance-low: 142.1 76.2% 36.3%;
     --importance-medium: 35.5 91.7% 54.9%;
     --importance-high: 0 72.2% 50.6%;
+
+    /* Bucket color variables */
+    --color-blue: #4285f4;
+    --color-red: #ea4335;
+    --color-green: #34a853;
+    --color-yellow: #fbbc05;
+    --color-purple: #8429f6;
+    --color-indigo: #5e5ce6;
+    --color-pink: #ff61c6;
+    --color-orange: #ff6d01;
+    --color-gray: #5f6368;
   }
 
   * {
