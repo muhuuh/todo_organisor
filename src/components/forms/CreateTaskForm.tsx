@@ -55,10 +55,10 @@ const formSchema = z.object({
     "Tomorrow",
     "This Week",
   ]),
-  time_estimate: z.preprocess(
-    (val) => (val === "" ? undefined : Number(val)),
-    z.number().min(0).optional()
-  ),
+  // Make time_estimate truly optional with no validation errors when empty
+  time_estimate: z
+    .union([z.number().min(0).optional(), z.literal(undefined)])
+    .optional(),
 });
 
 interface CreateTaskFormProps {
@@ -104,6 +104,7 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
       bucket: "Short-Term" as TaskBucketType,
       time_estimate: undefined,
     },
+    mode: "onSubmit", // Only validate on submit, not on change
   });
 
   // Track the time estimate value from form
@@ -119,10 +120,13 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
 
   // Update form when time estimate changes from slider
   useEffect(() => {
-    form.setValue("time_estimate", timeEstimate || undefined, {
-      shouldValidate: true,
-      shouldDirty: true,
-    });
+    form.setValue(
+      "time_estimate",
+      timeEstimate === 0 ? undefined : timeEstimate,
+      {
+        shouldValidate: false, // Don't validate on change
+      }
+    );
   }, [timeEstimate, form]);
 
   // Extract unique main tasks and categories from existing tasks
@@ -402,7 +406,10 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
                 <FormItem>
                   <FormLabel className="flex items-center gap-1.5">
                     <Timer className="h-4 w-4" />
-                    Time Estimate (minutes)
+                    Time Estimate (minutes){" "}
+                    <span className="text-muted-foreground text-xs ml-1">
+                      (Optional)
+                    </span>
                   </FormLabel>
                   <div className="bg-accent/5 p-3 rounded-md border border-accent/10">
                     <div className="flex items-center gap-2.5">
