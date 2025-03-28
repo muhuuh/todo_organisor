@@ -101,7 +101,7 @@ const Index = () => {
         {/* Task Explorer Section */}
         <TaskExplorer
           tasks={tasks}
-          onDeleteTask={deleteTask}
+          onDelete={deleteTask}
           onToggleCompletion={toggleTaskCompletion}
         />
 

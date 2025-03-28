@@ -108,7 +108,12 @@ const TaskExplorerModal = ({
   };
 
   const handleCompletionToggle = (e: React.MouseEvent, id: string) => {
+    // Prevent any default behavior
+    e.preventDefault();
+    // Stop event propagation to prevent bubbling up
     e.stopPropagation();
+
+    // Call the toggle function provided
     onToggleCompletion(id);
   };
 

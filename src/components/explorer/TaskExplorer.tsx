@@ -16,18 +16,27 @@ type FilterType = "main_task" | "category";
 
 interface TaskExplorerProps {
   tasks: Task[];
-  onDeleteTask: (id: string) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
   onToggleCompletion: (id: string) => Promise<void>;
 }
 
 const TaskExplorer = ({
   tasks,
-  onDeleteTask,
+  onDelete,
   onToggleCompletion,
 }: TaskExplorerProps) => {
   const [filterType, setFilterType] = useState<FilterType>("main_task");
   const [selectedValue, setSelectedValue] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Local state for the task display in the modal
+  const [localTaskStates, setLocalTaskStates] = useState<
+    Record<string, boolean>
+  >({});
+  // Track tasks that were toggled but not yet processed
+  const [pendingCompletionToggles, setPendingCompletionToggles] = useState<
+    Set<string>
+  >(new Set());
 
   // Get unique main tasks and categories from tasks
   const uniqueOptions = useMemo(() => {
@@ -53,14 +62,25 @@ const TaskExplorer = ({
   const filteredTasks = useMemo(() => {
     if (!selectedValue) return [];
 
-    return tasks.filter((task) => {
+    const filtered = tasks.filter((task) => {
       if (filterType === "main_task") {
         return task.main_task === selectedValue;
       } else {
         return task.category === selectedValue;
       }
     });
-  }, [tasks, filterType, selectedValue]);
+
+    // Apply any local state changes for display purposes
+    return filtered.map((task) => {
+      if (localTaskStates[task.id] !== undefined) {
+        return {
+          ...task,
+          completed: localTaskStates[task.id],
+        };
+      }
+      return task;
+    });
+  }, [tasks, filterType, selectedValue, localTaskStates]);
 
   const handleFilterTypeChange = (value: FilterType) => {
     setFilterType(value);
@@ -73,8 +93,58 @@ const TaskExplorer = ({
 
   const handleViewTasks = () => {
     if (selectedValue) {
+      // Reset local states when opening modal
+      setLocalTaskStates({});
+      setPendingCompletionToggles(new Set());
       setIsModalOpen(true);
     }
+  };
+
+  // Local handler for task completion in the modal
+  const handleTaskCompletion = (id: string) => {
+    // Find the current task to get its state
+    const task = filteredTasks.find((t) => t.id === id);
+    if (!task) return;
+
+    // Update local state for immediate UI feedback
+    setLocalTaskStates((prev) => ({
+      ...prev,
+      [id]: !task.completed,
+    }));
+
+    // Add to our pending changes set
+    setPendingCompletionToggles((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id); // Toggle off if it was already toggled
+      } else {
+        newSet.add(id); // Toggle on
+      }
+      return newSet;
+    });
+  };
+
+  // Handle the modal closing - process all pending changes
+  const handleCloseModal = async () => {
+    // Process all pending toggles
+    if (pendingCompletionToggles.size > 0) {
+      // Create an array of promises for all toggles
+      const togglePromises = Array.from(pendingCompletionToggles).map(
+        (taskId) => onToggleCompletion(taskId)
+      );
+
+      // Execute all toggles in parallel
+      try {
+        await Promise.all(togglePromises);
+      } catch (error) {
+        console.error("Error processing completion toggles:", error);
+      }
+    }
+
+    // Reset all local state
+    setLocalTaskStates({});
+    setPendingCompletionToggles(new Set());
+    setIsModalOpen(false);
   };
 
   return (
@@ -147,13 +217,13 @@ const TaskExplorer = ({
       {isModalOpen && (
         <TaskExplorerModal
           open={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          onClose={handleCloseModal}
           tasks={filteredTasks}
           title={`${
             filterType === "main_task" ? "Main Task" : "Category"
           }: ${selectedValue}`}
-          onDelete={onDeleteTask}
-          onToggleCompletion={onToggleCompletion}
+          onDelete={onDelete}
+          onToggleCompletion={handleTaskCompletion}
         />
       )}
     </section>
