@@ -27,6 +27,7 @@ interface TaskExplorerModalProps {
   tasks: Task[];
   title: string;
   onDelete: (id: string) => void;
+  onToggleCompletion: (id: string) => void;
 }
 
 // Helper function to get importance badge
@@ -85,6 +86,7 @@ const TaskExplorerModal = ({
   tasks,
   title,
   onDelete,
+  onToggleCompletion,
 }: TaskExplorerModalProps) => {
   const groupedTasks = groupTasksByBucket(tasks);
   const bucketOrder = [
@@ -103,6 +105,11 @@ const TaskExplorerModal = ({
 
   const handleDelete = (id: string) => {
     onDelete(id);
+  };
+
+  const handleCompletionToggle = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    onToggleCompletion(id);
   };
 
   return (
@@ -152,13 +159,28 @@ const TaskExplorerModal = ({
                     </button>
 
                     <div className="grid grid-cols-[auto_1fr] gap-x-3">
-                      {/* Status indicator - only show checkmark for completed tasks */}
+                      {/* Status indicator - clickable checkbox */}
                       <div className="flex-shrink-0 mt-0.5">
-                        {task.completed ? (
-                          <CheckCircle2 className="h-5 w-5 text-primary" />
-                        ) : (
-                          <Square className="h-[18px] w-[18px] text-muted-foreground" />
-                        )}
+                        <button
+                          onClick={(e) => handleCompletionToggle(e, task.id)}
+                          className="flex-shrink-0"
+                          aria-label={
+                            task.completed
+                              ? "Task completed"
+                              : "Mark as completed"
+                          }
+                          title={
+                            task.completed
+                              ? "Task completed"
+                              : "Mark as completed"
+                          }
+                        >
+                          {task.completed ? (
+                            <CheckCircle2 className="h-5 w-5 text-primary" />
+                          ) : (
+                            <Square className="h-[18px] w-[18px] text-muted-foreground hover:text-primary hover:border-primary transition-colors" />
+                          )}
+                        </button>
                       </div>
 
                       {/* Task content area */}
