@@ -7,6 +7,7 @@ import TimeVisualization from "@/components/charts/TimeVisualization";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { Navbar } from "@/components/layout/Navbar";
+import TaskExplorer from "@/components/explorer/TaskExplorer";
 
 const Index = () => {
   const {
@@ -96,6 +97,9 @@ const Index = () => {
         </header>
 
         <CreateTaskForm onSubmit={addTask} />
+
+        {/* Task Explorer Section */}
+        <TaskExplorer tasks={tasks} />
 
         <section className="mb-8">
           <h2 className="text-xl font-medium mb-4">Task Category Buckets</h2>
