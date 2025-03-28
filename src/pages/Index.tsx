@@ -99,7 +99,7 @@ const Index = () => {
         <CreateTaskForm onSubmit={addTask} />
 
         {/* Task Explorer Section */}
-        <TaskExplorer tasks={tasks} />
+        <TaskExplorer tasks={tasks} onDeleteTask={deleteTask} />
 
         <section className="mb-8">
           <h2 className="text-xl font-medium mb-4">Task Category Buckets</h2>

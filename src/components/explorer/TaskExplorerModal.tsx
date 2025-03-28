@@ -10,11 +10,12 @@ import { Badge } from "@/components/ui/badge";
 import {
   Clock,
   CheckCircle2,
-  XCircle,
   Tag,
   Info,
   AlertCircle,
   AlertTriangle,
+  X,
+  Square,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -25,6 +26,7 @@ interface TaskExplorerModalProps {
   onClose: () => void;
   tasks: Task[];
   title: string;
+  onDelete: (id: string) => void;
 }
 
 // Helper function to get importance badge
@@ -82,6 +84,7 @@ const TaskExplorerModal = ({
   onClose,
   tasks,
   title,
+  onDelete,
 }: TaskExplorerModalProps) => {
   const groupedTasks = groupTasksByBucket(tasks);
   const bucketOrder = [
@@ -97,6 +100,10 @@ const TaskExplorerModal = ({
   const sortedBuckets = Object.keys(groupedTasks).sort(
     (a, b) => bucketOrder.indexOf(a) - bucketOrder.indexOf(b)
   );
+
+  const handleDelete = (id: string) => {
+    onDelete(id);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -132,20 +139,30 @@ const TaskExplorerModal = ({
                 {groupedTasks[bucket].map((task) => (
                   <div
                     key={task.id}
-                    className="bg-background rounded-lg border shadow-sm hover:shadow-md transition-all p-4"
+                    className="bg-background rounded-lg border shadow-sm hover:shadow-md transition-all p-4 relative"
                   >
+                    {/* Delete button - positioned absolutely in top right */}
+                    <button
+                      onClick={() => handleDelete(task.id)}
+                      className="absolute right-3 top-3 text-muted-foreground/40 hover:text-destructive transition-colors hover:bg-muted/20 rounded-sm p-0.5"
+                      aria-label="Delete task"
+                      title="Delete task"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+
                     <div className="grid grid-cols-[auto_1fr] gap-x-3">
-                      {/* Status indicator with circle style */}
+                      {/* Status indicator - only show checkmark for completed tasks */}
                       <div className="flex-shrink-0 mt-0.5">
                         {task.completed ? (
                           <CheckCircle2 className="h-5 w-5 text-primary" />
                         ) : (
-                          <XCircle className="h-5 w-5 text-muted-foreground/70" />
+                          <Square className="h-[18px] w-[18px] text-muted-foreground" />
                         )}
                       </div>
 
                       {/* Task content area */}
-                      <div className="min-w-0 space-y-2">
+                      <div className="min-w-0 space-y-2 pr-4">
                         <div
                           className={
                             task.completed
@@ -195,14 +212,6 @@ const TaskExplorerModal = ({
                               {task.time_estimate} min
                             </Badge>
                           )}
-
-                          {/* Bucket badge - positioned at the end */}
-                          <Badge
-                            variant="outline"
-                            className="inline-flex items-center h-5 text-xs px-2 py-0 rounded-full bg-green-50/50 text-green-600 border-green-100 flex-shrink-0 ml-auto"
-                          >
-                            {task.bucket}
-                          </Badge>
                         </div>
                       </div>
                     </div>

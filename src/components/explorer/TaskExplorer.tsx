@@ -16,9 +16,10 @@ type FilterType = "main_task" | "category";
 
 interface TaskExplorerProps {
   tasks: Task[];
+  onDeleteTask: (id: string) => Promise<void>;
 }
 
-const TaskExplorer = ({ tasks }: TaskExplorerProps) => {
+const TaskExplorer = ({ tasks, onDeleteTask }: TaskExplorerProps) => {
   const [filterType, setFilterType] = useState<FilterType>("main_task");
   const [selectedValue, setSelectedValue] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -146,6 +147,7 @@ const TaskExplorer = ({ tasks }: TaskExplorerProps) => {
           title={`${
             filterType === "main_task" ? "Main Task" : "Category"
           }: ${selectedValue}`}
+          onDelete={onDeleteTask}
         />
       )}
     </section>
