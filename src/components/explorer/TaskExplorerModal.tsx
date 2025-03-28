@@ -12,7 +12,6 @@ import {
   CheckCircle2,
   XCircle,
   Tag,
-  Layers,
   Info,
   AlertCircle,
   AlertTriangle,
@@ -102,7 +101,7 @@ const TaskExplorerModal = ({
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+        <DialogHeader className="pb-3">
           <DialogTitle className="text-xl font-medium tracking-tight">
             {title}
           </DialogTitle>
@@ -112,111 +111,104 @@ const TaskExplorerModal = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 pt-2">
+        <div className="space-y-8 pt-2">
           {sortedBuckets.map((bucket) => (
-            <div key={bucket} className="space-y-3">
-              <div className="flex items-center gap-2 mb-2">
-                <Badge variant="outline" className="bg-primary/5 px-2.5">
+            <div key={bucket} className="space-y-4">
+              {/* Bucket header with more prominent styling */}
+              <div className="flex items-center mb-3">
+                <Badge
+                  variant="secondary"
+                  className="bg-muted/90 hover:bg-muted text-foreground rounded-full px-3 py-0.5 text-sm font-medium"
+                >
                   {bucket}
+                  <span className="ml-2 text-muted-foreground">
+                    {groupedTasks[bucket].length} task
+                    {groupedTasks[bucket].length !== 1 && "s"}
+                  </span>
                 </Badge>
-                <span className="text-xs text-muted-foreground">
-                  {groupedTasks[bucket].length} task
-                  {groupedTasks[bucket].length !== 1 && "s"}
-                </span>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-3 pl-1">
                 {groupedTasks[bucket].map((task) => (
-                  <Card
+                  <div
                     key={task.id}
-                    className={cn(
-                      "task-card animate-scale-in rounded-md border hover:shadow-sm transition-all",
-                      task.completed ? "opacity-70 bg-muted/30" : "",
-                      `importance-${task.importance.toLowerCase()}`
-                    )}
+                    className="bg-background rounded-lg border shadow-sm hover:shadow-md transition-all p-4"
                   >
-                    <CardContent className="p-3">
-                      <div className="grid grid-cols-[auto_1fr] gap-x-2.5">
-                        {/* Status indicator - matching TaskCard style */}
-                        <div className="flex-shrink-0 mt-0.5">
-                          {task.completed ? (
-                            <CheckCircle2 className="h-[18px] w-[18px] text-primary" />
-                          ) : (
-                            <XCircle className="h-[18px] w-[18px] text-muted-foreground" />
+                    <div className="grid grid-cols-[auto_1fr] gap-x-3">
+                      {/* Status indicator with circle style */}
+                      <div className="flex-shrink-0 mt-0.5">
+                        {task.completed ? (
+                          <CheckCircle2 className="h-5 w-5 text-primary" />
+                        ) : (
+                          <XCircle className="h-5 w-5 text-muted-foreground/70" />
+                        )}
+                      </div>
+
+                      {/* Task content area */}
+                      <div className="min-w-0 space-y-2">
+                        <div
+                          className={
+                            task.completed
+                              ? "line-through text-muted-foreground"
+                              : ""
+                          }
+                        >
+                          <h3 className="text-base font-medium leading-tight">
+                            {task.sub_task}
+                          </h3>
+
+                          {task.main_task && (
+                            <p className="text-sm text-muted-foreground mt-0.5 leading-tight">
+                              {task.main_task}
+                            </p>
                           )}
                         </div>
 
-                        {/* Task content area */}
-                        <div className="min-w-0">
-                          <div
-                            className={
-                              task.completed
-                                ? "line-through text-muted-foreground"
-                                : ""
-                            }
-                          >
-                            <h3 className="font-medium text-sm leading-tight">
-                              {task.sub_task}
-                            </h3>
-
-                            {task.main_task && (
-                              <p className="text-xs text-muted-foreground mt-0.5 leading-tight">
-                                {task.main_task}
-                              </p>
-                            )}
+                        {/* Badges in a cleaner horizontal row */}
+                        <div className="flex flex-wrap items-center gap-2">
+                          {/* Importance badge */}
+                          <div className="flex-shrink-0">
+                            {getImportanceBadge(task.importance)}
                           </div>
 
-                          {/* Badges - using similar style to TaskCard */}
-                          <div className="inline-flex items-center flex-wrap gap-1.5 mt-1.5 pb-0.5 max-w-full">
-                            {/* Importance badge */}
-                            <div className="flex-shrink-0">
-                              {getImportanceBadge(task.importance)}
-                            </div>
-
-                            {/* Category badge */}
-                            {task.category && (
-                              <Badge
-                                variant="outline"
-                                className="inline-flex items-center h-5 text-xs px-1.5 py-0 rounded-full bg-indigo-50/80 text-indigo-600 border-indigo-100 flex-shrink-0"
-                              >
-                                <Tag className="h-2.5 w-2.5 mr-0.5" />
-                                {task.category}
-                              </Badge>
-                            )}
-
-                            {/* Time estimate badge */}
-                            {task.time_estimate > 0 && (
-                              <Badge
-                                variant="outline"
-                                className="inline-flex items-center h-5 text-xs px-1.5 py-0 rounded-full bg-blue-50/80 text-blue-600 border-blue-100 flex-shrink-0"
-                              >
-                                <Clock
-                                  className="h-2.5 w-2.5 mr-0.5"
-                                  style={{ color: "#6B7280" }}
-                                />
-                                <span>{task.time_estimate} min</span>
-                              </Badge>
-                            )}
-
-                            {/* Bucket badge */}
+                          {/* Category badge */}
+                          {task.category && (
                             <Badge
                               variant="outline"
-                              className="inline-flex items-center h-5 text-xs px-1.5 py-0 rounded-full bg-green-50/50 text-green-600 border-green-100 flex-shrink-0"
+                              className="inline-flex items-center h-5 text-xs px-2 py-0 rounded-full bg-indigo-50/80 text-indigo-600 border-indigo-100 flex-shrink-0"
                             >
-                              <Layers className="h-2.5 w-2.5 mr-0.5" />
-                              <span>{task.bucket}</span>
+                              <Tag className="h-2.5 w-2.5 mr-1" />
+                              {task.category}
                             </Badge>
-                          </div>
+                          )}
+
+                          {/* Time estimate badge */}
+                          {task.time_estimate > 0 && (
+                            <Badge
+                              variant="outline"
+                              className="inline-flex items-center h-5 text-xs px-2 py-0 rounded-full bg-blue-50/80 text-blue-600 border-blue-100 flex-shrink-0"
+                            >
+                              <Clock
+                                className="h-2.5 w-2.5 mr-1"
+                                style={{ color: "#6B7280" }}
+                              />
+                              {task.time_estimate} min
+                            </Badge>
+                          )}
+
+                          {/* Bucket badge - positioned at the end */}
+                          <Badge
+                            variant="outline"
+                            className="inline-flex items-center h-5 text-xs px-2 py-0 rounded-full bg-green-50/50 text-green-600 border-green-100 flex-shrink-0 ml-auto"
+                          >
+                            {task.bucket}
+                          </Badge>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 ))}
               </div>
-
-              {bucket !== sortedBuckets[sortedBuckets.length - 1] && (
-                <Separator className="my-4 opacity-30" />
-              )}
             </div>
           ))}
 
