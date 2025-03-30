@@ -155,62 +155,69 @@ const TaskBucket = ({
                   <Collapsible
                     key={mainTask}
                     open={isOpen}
-                    className="border rounded-xl p-2.5 mb-3 bg-card/90 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-all"
+                    className="border rounded-xl p-2.5 mb-3 bg-card/90 shadow-[var(--shadow-sm)] hover:shadow-[var(--shadow-md)] transition-all group relative overflow-hidden"
                   >
-                    <CollapsibleTrigger
-                      className="flex items-center justify-between w-full text-left"
-                      onClick={() => toggleGroup(mainTask)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="font-medium text-sm">{mainTask}</div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {!isOpen && (
-                          <Badge
-                            variant="secondary"
-                            className="bg-secondary/50 text-xs"
-                          >
-                            {tasks.length}
-                          </Badge>
-                        )}
-                        {isOpen ? (
-                          <ChevronDown className="h-4 w-4 text-muted-foreground/70" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4 text-muted-foreground/70" />
-                        )}
-                      </div>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-3 space-y-2">
-                      {tasks.map((task, index) => (
-                        <div
-                          key={task.id}
-                          className={`
-                            rounded-lg 
-                            ${
-                              index % 2 === 0
-                                ? "bg-accent/5"
-                                : "bg-background/80"
-                            } 
-                            ${index > 0 ? "border-t border-accent/10" : ""}
-                            first:border-t-0
-                            p-0.5
-                          `}
-                        >
-                          <TaskCard
-                            task={task}
-                            onDragStart={onDragStart}
-                            onDelete={onDelete}
-                            onArchive={onArchive}
-                            onUpdateTimeEstimate={onUpdateTimeEstimate}
-                            onToggleCompletion={onToggleCompletion}
-                            onUpdateImportance={onUpdateImportance}
-                            allowTimeEstimate={true}
-                            inGroupView={true}
-                            hideCategory={true}
-                          />
+                    {/* Hover gradient effect for the entire box */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-violet-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                    <div className="relative z-10">
+                      {" "}
+                      {/* Wrapper to ensure content is above gradient */}
+                      <CollapsibleTrigger
+                        className="flex items-center justify-between w-full text-left"
+                        onClick={() => toggleGroup(mainTask)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="font-medium text-sm">{mainTask}</div>
                         </div>
-                      ))}
-                    </CollapsibleContent>
+                        <div className="flex items-center gap-2">
+                          {!isOpen && (
+                            <Badge
+                              variant="secondary"
+                              className="bg-secondary/50 text-xs"
+                            >
+                              {tasks.length}
+                            </Badge>
+                          )}
+                          {isOpen ? (
+                            <ChevronDown className="h-4 w-4 text-muted-foreground/70" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4 text-muted-foreground/70" />
+                          )}
+                        </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-3 space-y-2">
+                        {tasks.map((task, index) => (
+                          <div
+                            key={task.id}
+                            className={`
+                              rounded-lg 
+                              ${
+                                index % 2 === 0
+                                  ? "bg-accent/5"
+                                  : "bg-background/80"
+                              } 
+                              ${index > 0 ? "border-t border-accent/10" : ""}
+                              first:border-t-0
+                              p-0.5
+                            `}
+                          >
+                            <TaskCard
+                              task={task}
+                              onDragStart={onDragStart}
+                              onDelete={onDelete}
+                              onArchive={onArchive}
+                              onUpdateTimeEstimate={onUpdateTimeEstimate}
+                              onToggleCompletion={onToggleCompletion}
+                              onUpdateImportance={onUpdateImportance}
+                              allowTimeEstimate={true}
+                              inGroupView={true}
+                              hideCategory={true}
+                            />
+                          </div>
+                        ))}
+                      </CollapsibleContent>
+                    </div>
                   </Collapsible>
                 );
               })}
