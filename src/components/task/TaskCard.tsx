@@ -28,6 +28,7 @@ interface TaskCardProps {
   isCompleted?: boolean; // Whether this is displayed in the completed tasks list
   hideCategory?: boolean; // Whether to hide the category badge
   onDragStart: (e: React.DragEvent, task: Task) => void;
+  onDragEnd: (e: React.DragEvent) => void;
   onDelete: (id: string) => void;
   onArchive: (id: string) => void;
   onUpdateTimeEstimate: (id: string, estimate: number) => void;
@@ -42,6 +43,7 @@ const TaskCard = ({
   isCompleted = false,
   hideCategory = false,
   onDragStart,
+  onDragEnd,
   onDelete,
   onArchive,
   onUpdateTimeEstimate,
@@ -100,14 +102,15 @@ const TaskCard = ({
     };
   }, [showImportanceOptions]);
 
-  const handleDragStart = (e: React.DragEvent) => {
+  const handleDragStartInternal = (e: React.DragEvent) => {
     if (isCompleted) return; // No dragging for completed tasks
     e.currentTarget.classList.add("task-dragging");
     onDragStart(e, task);
   };
 
-  const handleDragEnd = (e: React.DragEvent) => {
+  const handleDragEndInternal = (e: React.DragEvent) => {
     e.currentTarget.classList.remove("task-dragging");
+    onDragEnd(e);
   };
 
   const handleTimeEstimateSubmit = () => {
@@ -224,11 +227,15 @@ const TaskCard = ({
     <>
       <div
         draggable={!isCompleted}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-        className={`task-card ${importanceClass} animate-scale-in mb-3 rounded-md border hover:shadow-sm transition-all ${
-          task.completed || isCompleted ? "opacity-70 bg-muted/30" : ""
-        }`}
+        onDragStart={handleDragStartInternal}
+        onDragEnd={handleDragEndInternal}
+        className={cn(
+          "task-card",
+          importanceClass,
+          "animate-scale-in mb-3 rounded-md border hover:shadow-sm transition-all",
+          !isCompleted && "cursor-grab active:cursor-grabbing",
+          (task.completed || isCompleted) && "opacity-70 bg-muted/30"
+        )}
       >
         <div className="p-1">
           {/* Main Task Content - Grid Structure */}

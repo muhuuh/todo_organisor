@@ -16,6 +16,7 @@ interface TaskBucketProps {
   tasks: Task[];
   onDrop: (e: React.DragEvent, bucketType: TaskBucketType) => void;
   onDragStart: (e: React.DragEvent, task: Task) => void;
+  onDragEnd: (e: React.DragEvent) => void;
   onDelete: (id: string) => void;
   onArchive: (id: string) => void;
   onUpdateTimeEstimate: (id: string, estimate: number) => void;
@@ -35,6 +36,7 @@ const TaskBucket = ({
   tasks,
   onDrop,
   onDragStart,
+  onDragEnd,
   onDelete,
   onArchive,
   onUpdateTimeEstimate,
@@ -46,17 +48,19 @@ const TaskBucket = ({
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
     const dropzone = e.currentTarget;
     dropzone.classList.add("bg-accent/30", "border-dashed");
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    const dropzone = e.currentTarget;
-    dropzone.classList.remove("bg-accent/30", "border-dashed");
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      const dropzone = e.currentTarget;
+      dropzone.classList.remove("bg-accent/30", "border-dashed");
+    }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDropInternal = (e: React.DragEvent) => {
     e.preventDefault();
     const dropzone = e.currentTarget;
     dropzone.classList.remove("bg-accent/30", "border-dashed");
@@ -75,38 +79,28 @@ const TaskBucket = ({
   // Group tasks by main_task
   const groupedTasks: GroupedTasks = bucketTasks.reduce(
     (groups: GroupedTasks, task) => {
-      // Use main_task if it exists, otherwise use a special identifier for ungrouped tasks
       const groupKey = task.main_task || "___ungrouped___";
-
       if (!groups[groupKey]) {
         groups[groupKey] = [];
       }
-
       groups[groupKey].push(task);
       return groups;
     },
     {}
   );
 
-  // Toggle group open/closed state
   const toggleGroup = (groupKey: string) => {
-    setOpenGroups((prev) => ({
-      ...prev,
-      [groupKey]: !prev[groupKey],
-    }));
+    setOpenGroups((prev) => ({ ...prev, [groupKey]: !prev[groupKey] }));
   };
 
-  // Check if a specific group is open
-  const isGroupOpen = (groupKey: string): boolean => {
-    return !!openGroups[groupKey];
-  };
+  const isGroupOpen = (groupKey: string): boolean => !!openGroups[groupKey];
 
   return (
     <Card
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-      className="task-bucket transition-all duration-300 min-h-[16rem]"
+      onDrop={handleDropInternal}
+      className="task-bucket transition-all duration-300 min-h-[16rem] border border-transparent"
     >
       <CardHeader className="pb-1.5 pt-4">
         <div className="flex justify-between items-center">
@@ -135,6 +129,7 @@ const TaskBucket = ({
                 key={task.id}
                 task={task}
                 onDragStart={onDragStart}
+                onDragEnd={onDragEnd}
                 onDelete={onDelete}
                 onArchive={onArchive}
                 onUpdateTimeEstimate={onUpdateTimeEstimate}
@@ -205,6 +200,7 @@ const TaskBucket = ({
                             <TaskCard
                               task={task}
                               onDragStart={onDragStart}
+                              onDragEnd={onDragEnd}
                               onDelete={onDelete}
                               onArchive={onArchive}
                               onUpdateTimeEstimate={onUpdateTimeEstimate}

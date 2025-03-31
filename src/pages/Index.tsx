@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTaskContext } from "@/context/TaskContext";
 import { Task, TaskBucketType } from "@/types";
 import TaskBucket from "@/components/buckets/TaskBucket";
@@ -23,32 +23,82 @@ const Index = () => {
   } = useTaskContext();
 
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
+  const [isDragging, setIsDragging] = useState(false); // Track dragging state for autoscroll
 
-  // Handle drag start
+  // Autoscroll logic for drag operations near window edges
+  const autoscrollOnDrag = useCallback((e: DragEvent) => {
+    const threshold = 60; // Pixels from edge to trigger scroll
+    const scrollSpeed = 15; // Pixels to scroll per frame
+    const clientY = e.clientY;
+    const windowHeight = window.innerHeight;
+
+    if (clientY < threshold) {
+      window.scrollBy(0, -scrollSpeed); // Scroll up
+    } else if (clientY > windowHeight - threshold) {
+      window.scrollBy(0, scrollSpeed); // Scroll down
+    }
+  }, []);
+
+  // Effect to add/remove autoscroll listener based on dragging state
+  useEffect(() => {
+    if (!isDragging) {
+      document.removeEventListener("dragover", autoscrollOnDrag);
+      return;
+    }
+
+    document.addEventListener("dragover", autoscrollOnDrag);
+
+    return () => {
+      document.removeEventListener("dragover", autoscrollOnDrag);
+    };
+  }, [isDragging, autoscrollOnDrag]);
+
+  // Handle drag start: set task data and flag dragging as true
   const handleDragStart = (e: React.DragEvent, task: Task) => {
-    // Set drag data with task ID for when dropping
     e.dataTransfer.setData("taskId", task.id);
+    // Use a minimal drag image
+    const dragImage = new Image();
+    dragImage.src =
+      "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+    e.dataTransfer.setDragImage(dragImage, 0, 0);
+    e.dataTransfer.effectAllowed = "move";
+
     setDraggedTask(task);
+    // Set isDragging *after* setting data transfer seems more reliable
+    setIsDragging(true);
   };
 
-  // Handle drop
+  // Handle drag end: always reset dragging state
+  const handleDragEnd = (e: React.DragEvent) => {
+    // Reset state and clean up any lingering styles
+    setIsDragging(false);
+    setDraggedTask(null);
+    document
+      .querySelectorAll(".task-dragging")
+      .forEach((el) => el.classList.remove("task-dragging"));
+    document
+      .querySelectorAll(".bg-accent/30")
+      .forEach((el) => el.classList.remove("bg-accent/30", "border-dashed"));
+  };
+
+  // Handle drop: move task if valid
   const handleDrop = async (
     e: React.DragEvent,
     targetBucket: TaskBucketType
   ) => {
+    e.preventDefault(); // Prevent default browser drop behavior
     const taskId = e.dataTransfer.getData("taskId");
 
-    if (!taskId) return;
+    // Reset dropzone visual style immediately
+    const dropzone = e.currentTarget;
+    dropzone.classList.remove("bg-accent/30", "border-dashed");
 
-    // Get the current bucket of the task
-    const task = tasks.find((t) => t.id === taskId);
+    if (!taskId) return; // Exit if no task ID
 
-    if (!task) return;
+    const taskToMove = tasks.find((t) => t.id === taskId);
+    if (!taskToMove) return; // Exit if task not found
+    if (taskToMove.bucket === targetBucket) return; // Exit if bucket hasn't changed
 
-    // If the bucket hasn't changed, don't do anything
-    if (task.bucket === targetBucket) return;
-
-    // Move task to the new bucket
     try {
       await moveToBucket(taskId, targetBucket);
       toast.success(`Task moved to ${targetBucket}`);
@@ -56,6 +106,7 @@ const Index = () => {
       console.error("Error moving task:", err);
       toast.error("Failed to move task");
     }
+    // No finally block needed here, handleDragEnd takes care of cleanup
   };
 
   // Render loading skeleton while data is loading
@@ -113,6 +164,7 @@ const Index = () => {
               type="Short-Term"
               tasks={tasks}
               onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
               onDrop={handleDrop}
               onDelete={deleteTask}
               onArchive={archiveTask}
@@ -125,6 +177,7 @@ const Index = () => {
               type="Mid-Term"
               tasks={tasks}
               onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
               onDrop={handleDrop}
               onDelete={deleteTask}
               onArchive={archiveTask}
@@ -137,6 +190,7 @@ const Index = () => {
               type="Long-Term"
               tasks={tasks}
               onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
               onDrop={handleDrop}
               onDelete={deleteTask}
               onArchive={archiveTask}
@@ -155,6 +209,7 @@ const Index = () => {
               type="Today"
               tasks={tasks}
               onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
               onDrop={handleDrop}
               onDelete={deleteTask}
               onArchive={archiveTask}
@@ -168,6 +223,7 @@ const Index = () => {
               type="Tomorrow"
               tasks={tasks}
               onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
               onDrop={handleDrop}
               onDelete={deleteTask}
               onArchive={archiveTask}
@@ -181,6 +237,7 @@ const Index = () => {
               type="This Week"
               tasks={tasks}
               onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
               onDrop={handleDrop}
               onDelete={deleteTask}
               onArchive={archiveTask}
