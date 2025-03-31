@@ -308,65 +308,59 @@ const TaskCard = ({
       >
         <div className="p-1">
           {/* Main Task Content - Grid Structure */}
-          <div className="grid grid-cols-[auto_1fr] gap-x-2.5">
-            {/* Column 1: Checkbox */}
-            <div className="flex-shrink-0 mt-0.5">
-              {!isEditingTime ? (
-                <button
-                  onClick={handleCompletionToggle}
-                  className="flex-shrink-0"
-                  disabled={isCompleted}
-                  aria-label={
-                    isCompleted ? "Task completed" : "Mark as completed"
-                  }
-                  title={isCompleted ? "Task completed" : "Mark as completed"}
-                >
-                  {task.completed || isCompleted ? (
-                    <CheckSquare className="h-[18px] w-[18px] text-primary" />
-                  ) : (
-                    <Square className="h-[18px] w-[18px] text-muted-foreground hover:text-primary hover:border-primary transition-colors" />
-                  )}
-                </button>
-              ) : (
-                <div className="w-[18px] h-[18px]"></div>
-              )}
-            </div>
+          <div
+            className={cn(
+              "grid gap-x-2.5",
+              isEditingTitle ? "grid-cols-[1fr]" : "grid-cols-[auto_1fr]"
+            )}
+          >
+            {/* Column 1: Checkbox - Only show when not editing title */}
+            {!isEditingTitle && (
+              <div className="flex-shrink-0 mt-0.5">
+                {!isEditingTime ? (
+                  <button
+                    onClick={handleCompletionToggle}
+                    className="flex-shrink-0"
+                    disabled={isCompleted}
+                    aria-label={
+                      isCompleted ? "Task completed" : "Mark as completed"
+                    }
+                    title={isCompleted ? "Task completed" : "Mark as completed"}
+                  >
+                    {task.completed || isCompleted ? (
+                      <CheckSquare className="h-[18px] w-[18px] text-primary" />
+                    ) : (
+                      <Square className="h-[18px] w-[18px] text-muted-foreground hover:text-primary hover:border-primary transition-colors" />
+                    )}
+                  </button>
+                ) : (
+                  <div className="w-[18px] h-[18px]"></div>
+                )}
+              </div>
+            )}
 
             {/* Column 2: Content and Badges */}
             <div className="min-w-0 relative">
               {/* Task Title Area */}
               <div className="relative pr-5">
                 {isEditingTitle ? (
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="mb-2">
                     <Input
                       ref={titleInputRef}
                       value={editedSubTask}
                       onChange={(e) => setEditedSubTask(e.target.value)}
                       onKeyDown={handleSubTaskKeyDown}
-                      className="h-8 text-sm rounded-md"
+                      className="w-full h-9 text-xs rounded-md mb-2 border-primary/30 focus-visible:ring-0 focus:outline-none"
                       placeholder="Task title"
                       autoFocus
                     />
-                    <div className="flex gap-1">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 w-7 p-0"
-                        onClick={handleSubTaskSave}
-                        title="Save"
-                      >
-                        <Save className="h-3.5 w-3.5 text-primary" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 w-7 p-0"
-                        onClick={handleSubTaskCancel}
-                        title="Cancel"
-                      >
-                        <X className="h-3.5 w-3.5 text-muted-foreground" />
-                      </Button>
-                    </div>
+                    <Button
+                      size="sm"
+                      className="w-full h-7 text-xs rounded-md bg-primary/90 hover:bg-primary"
+                      onClick={handleSubTaskSave}
+                    >
+                      Save
+                    </Button>
                   </div>
                 ) : (
                   <div
@@ -396,7 +390,7 @@ const TaskCard = ({
                   </div>
                 )}
 
-                {/* Delete button */}
+                {/* Delete button - Only show when not editing */}
                 {!isEditingTime && !isEditingTitle && (
                   <button
                     onClick={() => onDelete(task.id)}
