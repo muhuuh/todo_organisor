@@ -22,6 +22,7 @@ interface TaskBucketProps {
   onUpdateTimeEstimate: (id: string, estimate: number) => void;
   onToggleCompletion: (id: string) => void;
   onUpdateImportance: (id: string, importance: ImportanceLevel) => void;
+  onUpdateSubTask: (id: string, newSubTask: string) => void;
   allowTimeEstimate?: boolean;
 }
 
@@ -42,6 +43,7 @@ const TaskBucket = ({
   onUpdateTimeEstimate,
   onToggleCompletion,
   onUpdateImportance,
+  onUpdateSubTask,
   allowTimeEstimate = false,
 }: TaskBucketProps) => {
   const [openGroups, setOpenGroups] = useState<{ [key: string]: boolean }>({});
@@ -135,6 +137,7 @@ const TaskBucket = ({
                 onUpdateTimeEstimate={onUpdateTimeEstimate}
                 onToggleCompletion={onToggleCompletion}
                 onUpdateImportance={onUpdateImportance}
+                onUpdateSubTask={onUpdateSubTask}
                 allowTimeEstimate={true}
                 inGroupView={false}
               />
@@ -206,6 +209,7 @@ const TaskBucket = ({
                               onUpdateTimeEstimate={onUpdateTimeEstimate}
                               onToggleCompletion={onToggleCompletion}
                               onUpdateImportance={onUpdateImportance}
+                              onUpdateSubTask={onUpdateSubTask}
                               allowTimeEstimate={true}
                               inGroupView={true}
                               hideCategory={true}

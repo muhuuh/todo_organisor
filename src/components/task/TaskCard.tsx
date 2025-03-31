@@ -15,6 +15,7 @@ import {
   Edit2,
   X,
   Timer,
+  Save,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -34,6 +35,7 @@ interface TaskCardProps {
   onUpdateTimeEstimate: (id: string, estimate: number) => void;
   onToggleCompletion: (id: string) => void;
   onUpdateImportance: (id: string, importance: ImportanceLevel) => void;
+  onUpdateSubTask: (id: string, newSubTask: string) => void;
 }
 
 const TaskCard = ({
@@ -49,14 +51,19 @@ const TaskCard = ({
   onUpdateTimeEstimate,
   onToggleCompletion,
   onUpdateImportance,
+  onUpdateSubTask,
 }: TaskCardProps) => {
   const [timeEstimate, setTimeEstimate] = useState(task.time_estimate || 0);
   const [isEditingTime, setIsEditingTime] = useState(false);
   const [showImportanceOptions, setShowImportanceOptions] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const [showCountdown, setShowCountdown] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editedSubTask, setEditedSubTask] = useState(task.sub_task);
+
   const timeInputRef = useRef<HTMLInputElement>(null);
   const importanceRef = useRef<HTMLDivElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
   // Focus input when editing time
   useEffect(() => {
@@ -64,6 +71,13 @@ const TaskCard = ({
       timeInputRef.current.focus();
     }
   }, [isEditingTime]);
+
+  // Focus input when editing title
+  useEffect(() => {
+    if (isEditingTitle && titleInputRef.current) {
+      titleInputRef.current.focus();
+    }
+  }, [isEditingTitle]);
 
   // Calculate dropdown position when showing importance options
   useEffect(() => {
@@ -102,6 +116,28 @@ const TaskCard = ({
     };
   }, [showImportanceOptions]);
 
+  // Close title editing when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        titleInputRef.current &&
+        !titleInputRef.current.contains(event.target as Node)
+      ) {
+        // We can either cancel or save here - choosing to cancel for now
+        setIsEditingTitle(false);
+        setEditedSubTask(task.sub_task); // Reset to original value
+      }
+    };
+
+    if (isEditingTitle) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isEditingTitle, task.sub_task]);
+
   const handleDragStartInternal = (e: React.DragEvent) => {
     if (isCompleted) return; // No dragging for completed tasks
     e.currentTarget.classList.add("task-dragging");
@@ -117,6 +153,39 @@ const TaskCard = ({
     onUpdateTimeEstimate(task.id, timeEstimate);
     setIsEditingTime(false);
     toast.success(`Time estimate updated to ${timeEstimate} minutes`);
+  };
+
+  const handleSubTaskEdit = () => {
+    if (!isCompleted && !task.completed) {
+      setIsEditingTitle(true);
+      setEditedSubTask(task.sub_task);
+    }
+  };
+
+  const handleSubTaskSave = () => {
+    if (editedSubTask.trim() === "") {
+      toast.error("Task title cannot be empty");
+      return;
+    }
+
+    onUpdateSubTask(task.id, editedSubTask);
+    setIsEditingTitle(false);
+    toast.success("Task title updated");
+  };
+
+  const handleSubTaskCancel = () => {
+    setIsEditingTitle(false);
+    setEditedSubTask(task.sub_task); // Reset to original value
+  };
+
+  const handleSubTaskKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSubTaskSave();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      handleSubTaskCancel();
+    }
   };
 
   const handleCompletionToggle = (e: React.MouseEvent) => {
@@ -267,26 +336,68 @@ const TaskCard = ({
             <div className="min-w-0 relative">
               {/* Task Title Area */}
               <div className="relative pr-5">
-                <div
-                  className={
-                    task.completed || isCompleted
-                      ? "line-through text-muted-foreground"
-                      : ""
-                  }
-                >
-                  <h3 className="font-medium text-sm leading-tight">
-                    {task.sub_task}
-                  </h3>
-                  {/* Only show main_task if not in a group view */}
-                  {task.main_task && !inGroupView && (
-                    <p className="text-xs text-muted-foreground mt-0.5 leading-tight">
-                      {task.main_task}
-                    </p>
-                  )}
-                </div>
+                {isEditingTitle ? (
+                  <div className="flex items-center gap-2 mb-1">
+                    <Input
+                      ref={titleInputRef}
+                      value={editedSubTask}
+                      onChange={(e) => setEditedSubTask(e.target.value)}
+                      onKeyDown={handleSubTaskKeyDown}
+                      className="h-8 text-sm rounded-md"
+                      placeholder="Task title"
+                      autoFocus
+                    />
+                    <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 w-7 p-0"
+                        onClick={handleSubTaskSave}
+                        title="Save"
+                      >
+                        <Save className="h-3.5 w-3.5 text-primary" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 w-7 p-0"
+                        onClick={handleSubTaskCancel}
+                        title="Cancel"
+                      >
+                        <X className="h-3.5 w-3.5 text-muted-foreground" />
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    className={
+                      task.completed || isCompleted
+                        ? "line-through text-muted-foreground"
+                        : ""
+                    }
+                  >
+                    <h3
+                      className={cn(
+                        "font-medium text-sm leading-tight",
+                        !isCompleted &&
+                          !task.completed &&
+                          "hover:text-primary cursor-pointer hover:underline"
+                      )}
+                      onClick={handleSubTaskEdit}
+                    >
+                      {task.sub_task}
+                    </h3>
+                    {/* Only show main_task if not in a group view */}
+                    {task.main_task && !inGroupView && (
+                      <p className="text-xs text-muted-foreground mt-0.5 leading-tight">
+                        {task.main_task}
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {/* Delete button */}
-                {!isEditingTime && (
+                {!isEditingTime && !isEditingTitle && (
                   <button
                     onClick={() => onDelete(task.id)}
                     className="absolute right-0 top-0 text-muted-foreground/40 hover:text-destructive transition-colors hover:bg-muted/20 rounded-sm p-0.5"
@@ -342,7 +453,7 @@ const TaskCard = ({
               )}
 
               {/* Badges row - using inline-flex and nowrap to prevent wrapping */}
-              {(!isEditingTime || !allowTimeEstimate) && (
+              {(!isEditingTime || !allowTimeEstimate) && !isEditingTitle && (
                 <div className="inline-flex items-center flex-nowrap overflow-x-auto space-x-1.5 mt-1.5 pb-0.5 max-w-full no-scrollbar">
                   {/* Importance badge */}
                   <div ref={importanceRef} className="relative flex-shrink-0">

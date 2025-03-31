@@ -26,6 +26,7 @@ interface TaskContextType {
     taskId: string,
     importance: ImportanceLevel
   ) => Promise<void>;
+  updateSubTask: (taskId: string, newSubTask: string) => Promise<void>;
   fetchCompletedTasks: () => Promise<void>;
   userId: string | null;
 }
@@ -464,36 +465,86 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
     importance: ImportanceLevel
   ) => {
     if (!userId) {
-      toast.error("You must be signed in to update tasks");
+      toast.error("You must be signed in to update task importance");
       return;
     }
 
     try {
       const task = tasks.find((t) => t.id === taskId);
-      if (!task) return;
-
-      // Ensure we're only updating the current user's tasks
-      if (task.user_id !== userId) {
-        toast.error("You can only update your own tasks");
+      if (!task) {
+        console.error("Task not found for importance update:", taskId);
         return;
       }
 
+      // First update the UI optimistically
+      setTasks((prevTasks) =>
+        prevTasks.map((t) =>
+          t.id === taskId ? { ...t, importance: importance } : t
+        )
+      );
+
+      // Then update the database
       const { error } = await supabase
         .from("tasks")
-        .update({ importance })
+        .update({ importance: importance })
         .eq("id", taskId)
         .eq("user_id", userId);
 
-      if (handleSupabaseError(error)) return;
-
-      setTasks((prevTasks) =>
-        prevTasks.map((t) => (t.id === taskId ? { ...t, importance } : t))
-      );
-
-      toast.success("Task importance updated");
+      if (handleSupabaseError(error)) {
+        // Rollback UI changes on error
+        setTasks((prevTasks) =>
+          prevTasks.map((t) =>
+            t.id === taskId ? { ...t, importance: task.importance } : t
+          )
+        );
+        return;
+      }
     } catch (err) {
       console.error("Error updating task importance:", err);
       toast.error("Failed to update task importance");
+    }
+  };
+
+  // Update the subtask (title) of a task
+  const updateSubTask = async (taskId: string, newSubTask: string) => {
+    if (!userId) {
+      toast.error("You must be signed in to update task title");
+      return;
+    }
+
+    try {
+      const task = tasks.find((t) => t.id === taskId);
+      if (!task) {
+        console.error("Task not found for title update:", taskId);
+        return;
+      }
+
+      // First update the UI optimistically
+      setTasks((prevTasks) =>
+        prevTasks.map((t) =>
+          t.id === taskId ? { ...t, sub_task: newSubTask } : t
+        )
+      );
+
+      // Then update the database
+      const { error } = await supabase
+        .from("tasks")
+        .update({ sub_task: newSubTask })
+        .eq("id", taskId)
+        .eq("user_id", userId);
+
+      if (handleSupabaseError(error)) {
+        // Rollback UI changes on error
+        setTasks((prevTasks) =>
+          prevTasks.map((t) =>
+            t.id === taskId ? { ...t, sub_task: task.sub_task } : t
+          )
+        );
+        return;
+      }
+    } catch (err) {
+      console.error("Error updating task title:", err);
+      toast.error("Failed to update task title");
     }
   };
 
@@ -511,6 +562,7 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
     updateTimeEstimate,
     toggleTaskCompletion,
     updateTaskImportance,
+    updateSubTask,
     fetchCompletedTasks,
     userId,
   };

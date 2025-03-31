@@ -20,6 +20,7 @@ const Index = () => {
     updateTimeEstimate,
     toggleTaskCompletion,
     updateTaskImportance,
+    updateSubTask,
   } = useTaskContext();
 
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
@@ -171,6 +172,7 @@ const Index = () => {
               onUpdateTimeEstimate={updateTimeEstimate}
               onToggleCompletion={toggleTaskCompletion}
               onUpdateImportance={updateTaskImportance}
+              onUpdateSubTask={updateSubTask}
             />
             <TaskBucket
               title="Mid-Term Tasks"
@@ -184,6 +186,7 @@ const Index = () => {
               onUpdateTimeEstimate={updateTimeEstimate}
               onToggleCompletion={toggleTaskCompletion}
               onUpdateImportance={updateTaskImportance}
+              onUpdateSubTask={updateSubTask}
             />
             <TaskBucket
               title="Long-Term Tasks"
@@ -197,6 +200,7 @@ const Index = () => {
               onUpdateTimeEstimate={updateTimeEstimate}
               onToggleCompletion={toggleTaskCompletion}
               onUpdateImportance={updateTaskImportance}
+              onUpdateSubTask={updateSubTask}
             />
           </div>
         </section>
@@ -216,6 +220,7 @@ const Index = () => {
               onUpdateTimeEstimate={updateTimeEstimate}
               onToggleCompletion={toggleTaskCompletion}
               onUpdateImportance={updateTaskImportance}
+              onUpdateSubTask={updateSubTask}
               allowTimeEstimate
             />
             <TaskBucket
@@ -230,6 +235,7 @@ const Index = () => {
               onUpdateTimeEstimate={updateTimeEstimate}
               onToggleCompletion={toggleTaskCompletion}
               onUpdateImportance={updateTaskImportance}
+              onUpdateSubTask={updateSubTask}
               allowTimeEstimate
             />
             <TaskBucket
@@ -244,6 +250,7 @@ const Index = () => {
               onUpdateTimeEstimate={updateTimeEstimate}
               onToggleCompletion={toggleTaskCompletion}
               onUpdateImportance={updateTaskImportance}
+              onUpdateSubTask={updateSubTask}
               allowTimeEstimate
             />
           </div>

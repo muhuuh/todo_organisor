@@ -168,11 +168,13 @@ export default function CompletedTasksPage() {
                             isCompleted={true}
                             allowTimeEstimate={false}
                             onDragStart={(e) => {}}
+                            onDragEnd={(e) => {}}
                             onDelete={deleteTask}
                             onArchive={() => {}}
                             onUpdateTimeEstimate={() => {}}
                             onToggleCompletion={() => {}}
                             onUpdateImportance={() => {}}
+                            onUpdateSubTask={() => {}}
                           />
                         </div>
                       ))}
