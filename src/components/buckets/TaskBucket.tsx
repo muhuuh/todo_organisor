@@ -102,9 +102,9 @@ const TaskBucket = ({
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDropInternal}
-      className="task-bucket transition-all duration-300 min-h-[16rem] border border-transparent"
+      className="task-bucket transition-all duration-300 min-h-[16rem] border border-transparent w-full min-w-[320px] max-w-full"
     >
-      <CardHeader className="pb-1.5 pt-4">
+      <CardHeader className="pb-1.5 pt-4 px-3 sm:px-4">
         <div className="flex justify-between items-center">
           <CardTitle className="text-base font-medium">{title}</CardTitle>
           <Badge variant="outline" className="ml-2 bg-primary/5 px-2.5">
@@ -118,7 +118,7 @@ const TaskBucket = ({
           </div>
         )}
       </CardHeader>
-      <CardContent className="space-y-3 pt-2">
+      <CardContent className="space-y-3 pt-2 px-3 sm:px-4">
         {bucketTasks.length === 0 ? (
           <div className="text-center py-10 text-sm text-muted-foreground/60 italic bg-muted/10 rounded-lg border border-dashed border-muted/30">
             Drop tasks here

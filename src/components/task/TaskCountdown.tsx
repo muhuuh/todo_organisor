@@ -132,7 +132,11 @@ const TaskCountdown = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md bg-gradient-to-b from-background to-background/95 border-border/50 backdrop-blur-sm">
+      <DialogContent
+        className="sm:max-w-md bg-gradient-to-b from-background to-background/95 border-border/50 backdrop-blur-sm"
+        onEscapeKeyDown={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <div className="flex flex-col items-center py-7">
           <h3 className="font-medium text-lg mb-8 text-center max-w-[80%]">
             {taskName}

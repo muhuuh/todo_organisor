@@ -448,7 +448,7 @@ const TaskCard = ({
 
               {/* Badges row - using inline-flex and nowrap to prevent wrapping */}
               {(!isEditingTime || !allowTimeEstimate) && !isEditingTitle && (
-                <div className="inline-flex items-center flex-nowrap overflow-x-auto space-x-1.5 mt-1.5 pb-0.5 max-w-full no-scrollbar">
+                <div className="inline-flex items-center flex-nowrap overflow-x-auto space-x-1.5 mt-1.5 pb-0.5 max-w-full no-scrollbar -ml-7">
                   {/* Importance badge */}
                   <div ref={importanceRef} className="relative flex-shrink-0">
                     <Badge

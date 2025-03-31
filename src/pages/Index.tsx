@@ -115,16 +115,16 @@ const Index = () => {
     return (
       <div>
         <Navbar />
-        <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <div className="container mx-auto px-2 py-8 max-w-7xl">
           <div className="mb-8">
             <Skeleton className="h-12 w-full" />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
             {[...Array(3)].map((_, i) => (
               <Skeleton key={i} className="h-64" />
             ))}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
             {[...Array(3)].map((_, i) => (
               <Skeleton key={i} className="h-64" />
             ))}
@@ -138,7 +138,7 @@ const Index = () => {
   return (
     <div>
       <Navbar />
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <div className="container mx-auto px-2 py-8 max-w-7xl">
         <header className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-center mb-1">
             Task Organizer
@@ -159,7 +159,7 @@ const Index = () => {
 
         <section className="mb-8">
           <h2 className="text-xl font-medium mb-4">Task Category Buckets</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <TaskBucket
               title="Short-Term Tasks"
               type="Short-Term"
@@ -207,7 +207,7 @@ const Index = () => {
 
         <section className="mb-8">
           <h2 className="text-xl font-medium mb-4">Planning Timeframes</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <TaskBucket
               title="Today"
               type="Today"
