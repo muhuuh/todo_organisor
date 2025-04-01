@@ -12,6 +12,7 @@ import SignUp from "./pages/SignUp";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import CompletedTasksPage from "./components/pages/CompletedTasksPage";
+import Notes from "./pages/Notes";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,16 @@ const App = () => {
                 <ProtectedRoute>
                   <TaskProvider>
                     <CompletedTasksPage />
+                  </TaskProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/notes"
+              element={
+                <ProtectedRoute>
+                  <TaskProvider>
+                    <Notes />
                   </TaskProvider>
                 </ProtectedRoute>
               }

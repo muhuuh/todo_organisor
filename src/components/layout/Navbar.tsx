@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { signOut } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
-import { Loader2, LogOut, CheckSquare, ListTodo } from "lucide-react";
+import { Loader2, LogOut, CheckSquare, ListTodo, FileText } from "lucide-react";
 
 export function Navbar() {
   const navigate = useNavigate();
@@ -36,6 +36,13 @@ export function Navbar() {
             >
               <CheckSquare className="h-4 w-4 mr-2" />
               Completed
+            </Link>
+            <Link
+              to="/notes"
+              className="px-3 py-2 rounded-md hover:bg-muted flex items-center"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Notes
             </Link>
           </div>
         </div>
