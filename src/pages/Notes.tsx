@@ -7,7 +7,8 @@ import NoteModal from "@/components/notes/NoteModal";
 import SearchBar from "@/components/notes/SearchBar";
 import { toast } from "@/hooks/use-toast";
 import { supabase, handleSupabaseError } from "@/lib/supabase";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus, Search, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 // Initial empty state
 const INITIAL_TAGS: Tag[] = [];
@@ -20,6 +21,8 @@ export default function Notes() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [showEditor, setShowEditor] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
 
   // Fetch notes from Supabase
   const fetchNotes = async (currentUserId: string) => {
@@ -196,6 +199,9 @@ export default function Notes() {
         if (newTags.length > 0) {
           setTags([...tags, ...newTags]);
         }
+
+        // Close the editor in mobile view after saving
+        setShowEditor(false);
 
         toast({
           title: "Note created",
@@ -381,6 +387,7 @@ export default function Notes() {
     }
 
     setFilteredNotes(filtered);
+    setShowSearch(false); // Close search panel on mobile after applying filters
   };
 
   const handleNoteClick = (note: Note) => {
@@ -406,13 +413,58 @@ export default function Notes() {
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto px-4 py-6 max-w-5xl">
-        <h1 className="text-2xl font-bold mb-6">Notes</h1>
+        {/* Mobile header with buttons */}
+        <div className="md:hidden flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-bold">Notes</h1>
+          <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setShowSearch(!showSearch)}
+              className={showSearch ? "bg-accent text-accent-foreground" : ""}
+            >
+              {showSearch ? (
+                <X className="h-4 w-4" />
+              ) : (
+                <Search className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        </div>
 
-        <NoteEditor existingTags={tags} onSaveNote={handleSaveNote} />
+        {/* Desktop header */}
+        <div className="hidden md:flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold">Notes</h1>
+          <Button
+            onClick={() => setShowEditor(true)}
+            variant="outline"
+            className="flex items-center gap-1"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            <span>New Note</span>
+          </Button>
+        </div>
 
-        <SearchBar allTags={tags} onSearch={handleSearch} />
+        {/* Note Editor - always visible on desktop, toggleable on mobile */}
+        <div
+          className={`${
+            showEditor || window.innerWidth >= 768 ? "block" : "hidden"
+          } mb-8`}
+        >
+          <NoteEditor existingTags={tags} onSaveNote={handleSaveNote} />
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Search - always visible on desktop, toggleable on mobile */}
+        <div
+          className={`${
+            showSearch || window.innerWidth >= 768 ? "block" : "hidden"
+          } mb-6`}
+        >
+          <SearchBar allTags={tags} onSearch={handleSearch} />
+        </div>
+
+        {/* Notes grid - responsive layout */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredNotes.length > 0 ? (
             filteredNotes.map((note) => (
               <NoteCard key={note.id} note={note} onClick={handleNoteClick} />
@@ -424,6 +476,21 @@ export default function Notes() {
               </p>
             </div>
           )}
+        </div>
+
+        {/* Mobile floating action button for quick note creation */}
+        <div className="md:hidden fixed bottom-6 right-6 z-10">
+          <Button
+            size="icon"
+            className="h-14 w-14 rounded-full shadow-lg"
+            onClick={() => {
+              setShowEditor(true);
+              // Scroll to editor
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+          >
+            <Plus className="h-6 w-6" />
+          </Button>
         </div>
 
         <NoteModal
