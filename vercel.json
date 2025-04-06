@@ -1,7 +1,0 @@
-{
-  "functions": {
-    "api/new_tasks.js": {
-      "runtime": "@vercel/node@18"
-    }
-  }
-}
