@@ -1,5 +1,5 @@
 import { IncomingMessage, ServerResponse } from "http";
-import { createClient } from "@supabase/supabase-js";
+// import { createClient } from "@supabase/supabase-js"; // Temporarily commented out
 
 // Helper function to parse JSON body
 async function parseJSONBody(req: IncomingMessage): Promise<any> {
@@ -21,10 +21,10 @@ async function parseJSONBody(req: IncomingMessage): Promise<any> {
   });
 }
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// const supabase = createClient( // Temporarily commented out
+//   process.env.NEXT_PUBLIC_SUPABASE_URL!,
+//   process.env.SUPABASE_SERVICE_ROLE_KEY!
+// );
 
 export default async function handler(
   req: IncomingMessage,
@@ -40,9 +40,8 @@ export default async function handler(
   try {
     const body = await parseJSONBody(req);
 
-    const { main_task, sub_task, category, importance, bucket, time_estimate } =
-      body;
-
+    // Basic validation (can keep this)
+    const { main_task, sub_task, category, importance, bucket } = body;
     if (!main_task || !sub_task || !category || !importance || !bucket) {
       res.statusCode = 400;
       res.setHeader("Content-Type", "application/json");
@@ -50,22 +49,17 @@ export default async function handler(
       return;
     }
 
-    const { data, error: dbError } = await supabase
-      .from("tasks")
-      .insert([
-        { main_task, sub_task, category, importance, bucket, time_estimate },
-      ]);
+    // --- Supabase code removed --- //
 
-    if (dbError) {
-      res.statusCode = 500;
-      res.setHeader("Content-Type", "application/json");
-      res.end(JSON.stringify({ error: dbError.message }));
-      return;
-    }
-
+    // Just return success if body is parsed and fields are present
     res.statusCode = 200;
     res.setHeader("Content-Type", "application/json");
-    res.end(JSON.stringify({ message: "Task created", data }));
+    res.end(
+      JSON.stringify({
+        message: "Task received (Supabase skipped)",
+        received_body: body,
+      })
+    );
   } catch (error: any) {
     res.statusCode = 400;
     res.setHeader("Content-Type", "application/json");
