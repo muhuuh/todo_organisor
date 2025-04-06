@@ -1,5 +1,5 @@
 import { IncomingMessage, ServerResponse } from "http";
-// import { createClient } from "@supabase/supabase-js"; // Temporarily commented out
+import { createClient } from "@supabase/supabase-js";
 
 // Helper function to parse JSON body
 async function parseJSONBody(req: IncomingMessage): Promise<any> {
@@ -21,10 +21,10 @@ async function parseJSONBody(req: IncomingMessage): Promise<any> {
   });
 }
 
-// const supabase = createClient( // Temporarily commented out
-//   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-//   process.env.SUPABASE_SERVICE_ROLE_KEY!
-// );
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export default async function handler(
   req: IncomingMessage,
@@ -40,8 +40,9 @@ export default async function handler(
   try {
     const body = await parseJSONBody(req);
 
-    // Basic validation (can keep this)
-    const { main_task, sub_task, category, importance, bucket } = body;
+    const { main_task, sub_task, category, importance, bucket, time_estimate } =
+      body;
+
     if (!main_task || !sub_task || !category || !importance || !bucket) {
       res.statusCode = 400;
       res.setHeader("Content-Type", "application/json");
@@ -49,17 +50,22 @@ export default async function handler(
       return;
     }
 
-    // --- Supabase code removed --- //
+    const { data, error: dbError } = await supabase
+      .from("tasks")
+      .insert([
+        { main_task, sub_task, category, importance, bucket, time_estimate },
+      ]);
 
-    // Just return success if body is parsed and fields are present
+    if (dbError) {
+      res.statusCode = 500;
+      res.setHeader("Content-Type", "application/json");
+      res.end(JSON.stringify({ error: dbError.message }));
+      return;
+    }
+
     res.statusCode = 200;
     res.setHeader("Content-Type", "application/json");
-    res.end(
-      JSON.stringify({
-        message: "Task received (Supabase skipped)",
-        received_body: body,
-      })
-    );
+    res.end(JSON.stringify({ message: "Task created", data }));
   } catch (error: any) {
     res.statusCode = 400;
     res.setHeader("Content-Type", "application/json");
