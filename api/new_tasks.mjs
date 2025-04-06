@@ -38,7 +38,7 @@ export default async function handler(req, res) {
 
   const { error: insertError } = await supabase.from("tasks").insert([
     {
-      user_id: user.id, // optional: link task to user
+      user_id: userData.user_id,
       main_task,
       sub_task,
       category,

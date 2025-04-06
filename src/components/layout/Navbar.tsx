@@ -3,6 +3,14 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import { signOut } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Loader2,
   LogOut,
   CheckSquare,
@@ -10,6 +18,8 @@ import {
   FileText,
   Menu,
   X,
+  User,
+  KeyRound,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
@@ -69,21 +79,42 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center space-x-2">
-          {/* Sign Out Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleSignOut}
-            disabled={isSigningOut}
-            className="hidden md:flex"
-          >
-            {isSigningOut ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <LogOut className="h-4 w-4 mr-2" />
-            )}
-            Sign Out
-          </Button>
+          {/* User Dropdown Menu (Desktop) */}
+          <div className="hidden md:block">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <User className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link
+                    to="/api-keys"
+                    className="cursor-pointer w-full flex items-center"
+                  >
+                    <KeyRound className="mr-2 h-4 w-4" />
+                    <span>API Keys</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={handleSignOut}
+                  disabled={isSigningOut}
+                  className="cursor-pointer"
+                >
+                  {isSigningOut ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <LogOut className="mr-2 h-4 w-4" />
+                  )}
+                  <span>Sign Out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
           {/* Mobile Menu */}
           <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
@@ -126,6 +157,16 @@ export function Navbar() {
                     >
                       <FileText className="h-5 w-5 mr-3" />
                       Notes
+                    </Link>
+                    <Link
+                      to="/api-keys"
+                      className={`px-3 py-2 rounded-md hover:bg-muted flex items-center ${
+                        isActive("/api-keys") ? "bg-muted font-medium" : ""
+                      }`}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <KeyRound className="h-5 w-5 mr-3" />
+                      API Keys
                     </Link>
                   </div>
                 </div>

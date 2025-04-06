@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import CompletedTasksPage from "./components/pages/CompletedTasksPage";
 import Notes from "./pages/Notes";
+import ApiKeysPage from "./pages/ApiKeysPage";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +63,14 @@ const App = () => {
                   <TaskProvider>
                     <Notes />
                   </TaskProvider>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/api-keys"
+              element={
+                <ProtectedRoute>
+                  <ApiKeysPage />
                 </ProtectedRoute>
               }
             />
