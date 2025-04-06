@@ -1,7 +1,0 @@
-{
-  "name": "vercel-api",
-  "type": "commonjs",
-  "dependencies": {
-    "@supabase/supabase-js": "^2.0.0"
-  }
-}

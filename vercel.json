@@ -1,8 +1,7 @@
 {
   "functions": {
     "api/new_tasks.js": {
-      "runtime": "nodejs18.x",
-      "source": "vercel-api/new_tasks.js"
+      "runtime": "nodejs18.x"
     }
   }
 }
