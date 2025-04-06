@@ -17,13 +17,28 @@ export default async function handler(req, res) {
   }
 
   const data = JSON.parse(body);
-  const { main_task, sub_task, category, importance, bucket, time_estimate } =
-    data;
+  const {
+    user_id,
+    main_task,
+    sub_task,
+    category,
+    importance,
+    bucket,
+    time_estimate,
+  } = data;
 
   const { error } = await supabase
     .from("tasks")
     .insert([
-      { main_task, sub_task, category, importance, bucket, time_estimate },
+      {
+        user_id,
+        main_task,
+        sub_task,
+        category,
+        importance,
+        bucket,
+        time_estimate,
+      },
     ]);
 
   if (error) {
