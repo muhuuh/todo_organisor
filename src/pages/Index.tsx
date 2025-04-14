@@ -18,6 +18,15 @@ import {
   closestCenter,
 } from "@dnd-kit/core";
 
+// Helper function to format dates
+const formatDate = (date: Date): string => {
+  return date.toLocaleDateString(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+};
+
 const Index = () => {
   const {
     tasks,
@@ -31,6 +40,14 @@ const Index = () => {
     updateTaskImportance,
     updateSubTask,
   } = useTaskContext();
+
+  // Calculate dates
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const todayTitle = `${formatDate(today)}`;
+  const tomorrowTitle = `${formatDate(tomorrow)}`;
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -154,9 +171,9 @@ const Index = () => {
 
           <section className="mb-8">
             <h2 className="text-xl font-medium mb-4">Planning Timeframes</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <TaskBucket
-                title="Today"
+                title={todayTitle}
                 type="Today"
                 tasks={tasks}
                 onDelete={deleteTask}
@@ -168,20 +185,8 @@ const Index = () => {
                 allowTimeEstimate
               />
               <TaskBucket
-                title="Tomorrow"
+                title={tomorrowTitle}
                 type="Tomorrow"
-                tasks={tasks}
-                onDelete={deleteTask}
-                onArchive={archiveTask}
-                onUpdateTimeEstimate={updateTimeEstimate}
-                onToggleCompletion={toggleTaskCompletion}
-                onUpdateImportance={updateTaskImportance}
-                onUpdateSubTask={updateSubTask}
-                allowTimeEstimate
-              />
-              <TaskBucket
-                title="This Week"
-                type="This Week"
                 tasks={tasks}
                 onDelete={deleteTask}
                 onArchive={archiveTask}
