@@ -22,15 +22,15 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import TaskCountdown from "./TaskCountdown";
 import { cn } from "@/lib/utils";
+import { useDraggable } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
 
 interface TaskCardProps {
   task: Task;
   allowTimeEstimate?: boolean;
-  inGroupView?: boolean; // Whether the card is displayed in a group view
-  isCompleted?: boolean; // Whether this is displayed in the completed tasks list
-  hideCategory?: boolean; // Whether to hide the category badge
-  onDragStart: (e: React.DragEvent, task: Task) => void;
-  onDragEnd: (e: React.DragEvent) => void;
+  inGroupView?: boolean;
+  isCompleted?: boolean;
+  hideCategory?: boolean;
   onDelete: (id: string) => void;
   onArchive: (id: string) => void;
   onUpdateTimeEstimate: (id: string, estimate: number) => void;
@@ -45,8 +45,6 @@ const TaskCard = ({
   inGroupView = false,
   isCompleted = false,
   hideCategory = false,
-  onDragStart,
-  onDragEnd,
   onDelete,
   onArchive,
   onUpdateTimeEstimate,
@@ -142,16 +140,23 @@ const TaskCard = ({
     };
   }, [isEditingTitle, task.sub_task]);
 
-  const handleDragStartInternal = (e: React.DragEvent) => {
-    if (isCompleted) return; // No dragging for completed tasks
-    e.currentTarget.classList.add("task-dragging");
-    onDragStart(e, task);
-  };
+  // --- dnd-kit Draggable --- 
+  const { 
+    attributes, 
+    listeners, 
+    setNodeRef, 
+    transform, 
+    isDragging 
+  } = useDraggable({
+    id: task.id, // Unique ID for the draggable item
+    data: { task }, // Pass the whole task object if needed in handleDragEnd
+    disabled: isCompleted, // Disable dragging for completed tasks
+  });
 
-  const handleDragEndInternal = (e: React.DragEvent) => {
-    e.currentTarget.classList.remove("task-dragging");
-    onDragEnd(e);
-  };
+  // Style for transforming the element while dragging
+  const style = transform ? {
+    transform: CSS.Translate.toString(transform),
+  } : undefined;
 
   const handleTimeEstimateSubmit = () => {
     onUpdateTimeEstimate(task.id, timeEstimate);
@@ -301,15 +306,17 @@ const TaskCard = ({
   return (
     <>
       <div
-        draggable={!isCompleted}
-        onDragStart={handleDragStartInternal}
-        onDragEnd={handleDragEndInternal}
+        ref={setNodeRef}
+        style={style}
+        {...listeners}
+        {...attributes}
         className={cn(
           "task-card relative",
           importanceClass,
           "animate-scale-in mb-3 rounded-md border hover:shadow-sm transition-all",
-          !isCompleted && "cursor-grab active:cursor-grabbing",
-          (task.completed || isCompleted) && "opacity-70 bg-muted/30"
+          !isCompleted && "cursor-grab",
+          (task.completed || isCompleted) && "opacity-70 bg-muted/30",
+          isDragging && "opacity-50 shadow-lg z-50"
         )}
       >
         <div className="p-1">

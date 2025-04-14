@@ -9,14 +9,13 @@ import {
 } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronRight, Clock } from "lucide-react";
 import { useState } from "react";
+import { useDroppable } from "@dnd-kit/core";
+import { cn } from "@/lib/utils";
 
 interface TaskBucketProps {
   title: string;
   type: TaskBucketType;
   tasks: Task[];
-  onDrop: (e: React.DragEvent, bucketType: TaskBucketType) => void;
-  onDragStart: (e: React.DragEvent, task: Task) => void;
-  onDragEnd: (e: React.DragEvent) => void;
   onDelete: (id: string) => void;
   onArchive: (id: string) => void;
   onUpdateTimeEstimate: (id: string, estimate: number) => void;
@@ -35,9 +34,6 @@ const TaskBucket = ({
   title,
   type,
   tasks,
-  onDrop,
-  onDragStart,
-  onDragEnd,
   onDelete,
   onArchive,
   onUpdateTimeEstimate,
@@ -48,26 +44,10 @@ const TaskBucket = ({
 }: TaskBucketProps) => {
   const [openGroups, setOpenGroups] = useState<{ [key: string]: boolean }>({});
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-    const dropzone = e.currentTarget;
-    dropzone.classList.add("bg-accent/30", "border-dashed");
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-      const dropzone = e.currentTarget;
-      dropzone.classList.remove("bg-accent/30", "border-dashed");
-    }
-  };
-
-  const handleDropInternal = (e: React.DragEvent) => {
-    e.preventDefault();
-    const dropzone = e.currentTarget;
-    dropzone.classList.remove("bg-accent/30", "border-dashed");
-    onDrop(e, type);
-  };
+  // --- dnd-kit Droppable --- 
+  const { setNodeRef, isOver } = useDroppable({
+    id: type, // Unique ID for the drop zone (using the bucket type)
+  });
 
   // Filter tasks for this bucket
   const bucketTasks = tasks.filter((task) => task.bucket === type);
@@ -99,10 +79,12 @@ const TaskBucket = ({
 
   return (
     <Card
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDropInternal}
-      className="task-bucket transition-all duration-300 min-h-[16rem] border border-transparent w-full min-w-[320px] max-w-full"
+      ref={setNodeRef} // Apply the ref from useDroppable
+      className={cn(
+        "task-bucket transition-all duration-150 min-h-[16rem] border w-full min-w-[320px] max-w-full",
+        // Add visual indication when a draggable is hovering over:
+        isOver ? "border-primary border-dashed bg-primary/5" : "border-transparent"
+      )}
     >
       <CardHeader className="pb-1.5 pt-4 px-3 sm:px-4">
         <div className="flex justify-between items-center">
@@ -120,7 +102,10 @@ const TaskBucket = ({
       </CardHeader>
       <CardContent className="space-y-3 pt-2 px-3 sm:px-4">
         {bucketTasks.length === 0 ? (
-          <div className="text-center py-10 text-sm text-muted-foreground/60 italic bg-muted/10 rounded-lg border border-dashed border-muted/30">
+          <div className={cn(
+              "text-center py-10 text-sm text-muted-foreground/60 italic rounded-lg border border-dashed",
+              isOver ? "border-primary/50 bg-primary/10" : "bg-muted/10 border-muted/30"
+            )}>
             Drop tasks here
           </div>
         ) : (
@@ -130,8 +115,6 @@ const TaskBucket = ({
               <TaskCard
                 key={task.id}
                 task={task}
-                onDragStart={onDragStart}
-                onDragEnd={onDragEnd}
                 onDelete={onDelete}
                 onArchive={onArchive}
                 onUpdateTimeEstimate={onUpdateTimeEstimate}
@@ -202,8 +185,6 @@ const TaskBucket = ({
                           >
                             <TaskCard
                               task={task}
-                              onDragStart={onDragStart}
-                              onDragEnd={onDragEnd}
                               onDelete={onDelete}
                               onArchive={onArchive}
                               onUpdateTimeEstimate={onUpdateTimeEstimate}
