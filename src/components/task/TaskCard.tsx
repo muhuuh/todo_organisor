@@ -17,6 +17,7 @@ import {
   X,
   Timer,
   Save,
+  GripVertical,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -140,7 +141,10 @@ const TaskCard = ({
     };
   }, [isEditingTitle, task.sub_task]);
 
-  // --- dnd-kit Draggable --- 
+  const isDisabled = isCompleted || isEditingTitle || isEditingTime;
+  // console.log(`Task ${task.id} - isDisabled: ${isDisabled}`); // Add this temporarily for debugging if needed
+
+  // --- dnd-kit Draggable ---
   const { 
     attributes, 
     listeners, 
@@ -148,14 +152,14 @@ const TaskCard = ({
     transform, 
     isDragging 
   } = useDraggable({
-    id: task.id, // Unique ID for the draggable item
-    data: { task }, // Pass the whole task object if needed in handleDragEnd
-    disabled: isCompleted, // Disable dragging for completed tasks
+    id: task.id, 
+    data: { task }, 
+    disabled: isDisabled, // Use the calculated disabled state
   });
 
-  // Style for transforming the element while dragging
   const style = transform ? {
     transform: CSS.Translate.toString(transform),
+    zIndex: isDragging ? 100 : undefined, 
   } : undefined;
 
   const handleTimeEstimateSubmit = () => {
@@ -306,263 +310,287 @@ const TaskCard = ({
   return (
     <>
       <div
-        ref={setNodeRef}
-        style={style}
-        {...listeners}
-        {...attributes}
+        ref={setNodeRef} 
+        style={style} 
+        {...attributes} 
         className={cn(
-          "task-card relative",
+          "task-card relative", // Removed group as handle is always visible
           importanceClass,
-          "animate-scale-in mb-3 rounded-md border hover:shadow-sm transition-all",
-          !isCompleted && "cursor-grab",
+          "mb-3 rounded-md border hover:shadow-sm transition-shadow", 
           (task.completed || isCompleted) && "opacity-70 bg-muted/30",
-          isDragging && "opacity-50 shadow-lg z-50"
+          isDragging && "shadow-xl z-50 opacity-90", // Added slight opacity when dragging
+          isDisabled && "bg-muted/20" // Keep visual cue for disabled
         )}
       >
-        <div className="p-1">
-          {/* Main Task Content - Grid Structure */}
-          <div
-            className={cn(
-              "grid gap-x-2.5",
-              isEditingTitle ? "grid-cols-[1fr]" : "grid-cols-[auto_1fr]"
-            )}
-          >
-            {/* Column 1: Checkbox - Only show when not editing title */}
-            {!isEditingTitle && (
-              <div className="flex-shrink-0 mt-0.5">
-                {!isEditingTime ? (
-                  <button
-                    onClick={handleCompletionToggle}
-                    className="flex-shrink-0"
-                    disabled={isCompleted}
-                    aria-label={
-                      isCompleted ? "Task completed" : "Mark as completed"
-                    }
-                    title={isCompleted ? "Task completed" : "Mark as completed"}
-                  >
-                    {task.completed || isCompleted ? (
-                      <CheckSquare className="h-[18px] w-[18px] text-primary" />
-                    ) : (
-                      <Square className="h-[18px] w-[18px] text-muted-foreground hover:text-primary hover:border-primary transition-colors" />
-                    )}
-                  </button>
-                ) : (
-                  <div className="w-[18px] h-[18px]"></div>
-                )}
+        <div className="flex items-stretch"> {/* Flex container for handle and content */}
+          {/* Simplified Drag Handle - always visible */}
+          {!isDisabled && (
+              <div 
+                  {...listeners} // Apply listeners ONLY to the handle
+                  className={cn(
+                      "px-1.5 flex items-center justify-center",
+                      "bg-muted/30 hover:bg-muted/50 transition-colors", // Simple background 
+                      "cursor-grab border-r border-border/50", // Visual separation
+                      // "touch-none" // Temporarily remove touch-none for testing
+                  )}
+                  aria-label="Drag task"
+              >
+                  <GripVertical className="h-4 w-4 text-muted-foreground/60" />
               </div>
-            )}
-
-            {/* Column 2: Content and Badges */}
-            <div className="min-w-0 relative">
-              {/* Task Title Area */}
-              <div className="relative pr-5">
-                {isEditingTitle ? (
-                  <div className="mb-2">
-                    <Input
-                      ref={titleInputRef}
-                      value={editedSubTask}
-                      onChange={(e) => setEditedSubTask(e.target.value)}
-                      onKeyDown={handleSubTaskKeyDown}
-                      className="w-full h-9 text-xs rounded-md mb-2 border-primary/30 focus-visible:ring-0 focus:outline-none"
-                      placeholder="Task title"
-                      autoFocus
-                    />
-                    <Button
-                      ref={saveButtonRef}
-                      size="sm"
-                      className="w-full h-7 text-xs rounded-md bg-primary/90 hover:bg-primary"
-                      onClick={handleSubTaskSave}
-                    >
-                      Save
-                    </Button>
-                  </div>
-                ) : (
-                  <div
-                    className={
-                      task.completed || isCompleted
-                        ? "line-through text-muted-foreground"
-                        : ""
-                    }
-                  >
-                    <h3
-                      className={cn(
-                        "font-medium text-sm leading-tight",
-                        !isCompleted &&
-                          !task.completed &&
-                          "hover:text-primary cursor-pointer hover:underline"
-                      )}
-                      onClick={handleSubTaskEdit}
-                    >
-                      {task.sub_task}
-                    </h3>
-                    {/* Only show main_task if not in a group view */}
-                    {task.main_task && !inGroupView && (
-                      <p className="text-xs text-muted-foreground mt-0.5 leading-tight">
-                        {task.main_task}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* Delete button - Only show when not editing */}
-                {!isEditingTime && !isEditingTitle && (
-                  <button
-                    onClick={() => onDelete(task.id)}
-                    className="absolute right-0 top-0 text-muted-foreground/40 hover:text-destructive transition-colors hover:bg-muted/20 rounded-sm p-0.5"
-                    aria-label="Delete task"
-                    title="Delete task"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                )}
+          )}
+          {/* If disabled, render a placeholder to maintain layout */}
+          {isDisabled && (
+              <div className="px-1.5 flex items-center justify-center border-r border-border/50">
+                  <GripVertical className="h-4 w-4 text-muted-foreground/20" />
               </div>
+          )}
 
-              {/* Time Estimate Slider - Only show when editing */}
-              {allowTimeEstimate && isEditingTime && (
-                <div className="mt-2 bg-accent/5 p-3 rounded-md border border-accent/10">
-                  <div className="flex items-center gap-2.5">
-                    <Slider
-                      className="flex-grow"
-                      min={0}
-                      max={120}
-                      step={5}
-                      value={[timeEstimate]}
-                      onValueChange={handleSliderChange}
-                    />
-                    <Input
-                      ref={timeInputRef}
-                      type="number"
-                      min={0}
-                      className="w-16 h-8 text-xs text-center"
-                      value={timeEstimate}
-                      onChange={(e) =>
-                        setTimeEstimate(parseInt(e.target.value) || 0)
+          {/* Task Content Area */}
+          <div className="p-1 flex-grow min-w-0"> { /* Removed pl-4, handle provides space */}
+            {/* Main Task Content - Grid Structure */}
+            <div
+              className={cn(
+                "grid gap-x-2.5",
+                isEditingTitle ? "grid-cols-[1fr]" : "grid-cols-[auto_1fr]"
+              )}
+            >
+              {/* Column 1: Checkbox - Only show when not editing title */}
+              {!isEditingTitle && (
+                <div className="flex-shrink-0 mt-0.5">
+                  {!isEditingTime ? (
+                    <button
+                      onClick={handleCompletionToggle}
+                      className="flex-shrink-0"
+                      disabled={isCompleted}
+                      aria-label={
+                        isCompleted ? "Task completed" : "Mark as completed"
                       }
-                    />
-                  </div>
-                  <div className="flex gap-2 mt-3 justify-end">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-7 text-xs px-3"
-                      onClick={() => setIsEditingTime(false)}
+                      title={isCompleted ? "Task completed" : "Mark as completed"}
                     >
-                      Cancel
-                    </Button>
-                    <Button
-                      size="sm"
-                      className="h-7 text-xs px-3"
-                      onClick={handleTimeEstimateSubmit}
-                    >
-                      Save
-                    </Button>
-                  </div>
+                      {task.completed || isCompleted ? (
+                        <CheckSquare className="h-[18px] w-[18px] text-primary" />
+                      ) : (
+                        <Square className="h-[18px] w-[18px] text-muted-foreground hover:text-primary hover:border-primary transition-colors" />
+                      )}
+                    </button>
+                  ) : (
+                    <div className="w-[18px] h-[18px]"></div>
+                  )}
                 </div>
               )}
 
-              {/* Badges row - using inline-flex and nowrap to prevent wrapping */}
-              {(!isEditingTime || !allowTimeEstimate) && !isEditingTitle && (
-                <div className="inline-flex items-center flex-nowrap overflow-x-auto space-x-1.5 mt-1.5 pb-0.5 max-w-full no-scrollbar -ml-7">
-                  {/* Importance badge */}
-                  <div ref={importanceRef} className="relative flex-shrink-0">
-                    <Badge
-                      variant="outline"
-                      className={`inline-flex items-center h-5 text-xs px-1.5 py-0 rounded-full border-transparent ${
-                        !isCompleted ? "cursor-pointer hover:bg-opacity-80" : ""
-                      } ${getImportanceBadgeClass()}`}
-                      onClick={handleImportanceClick}
-                      title={
-                        isCompleted
-                          ? "Task importance"
-                          : "Click to change importance"
+              {/* Column 2: Content and Badges */}
+              <div className="min-w-0 relative">
+                {/* Task Title Area */}
+                <div className="relative pr-5">
+                  {isEditingTitle ? (
+                    <div className="mb-2">
+                      <Input
+                        ref={titleInputRef}
+                        value={editedSubTask}
+                        onChange={(e) => setEditedSubTask(e.target.value)}
+                        onKeyDown={handleSubTaskKeyDown}
+                        className="w-full h-9 text-xs rounded-md mb-2 border-primary/30 focus-visible:ring-0 focus:outline-none"
+                        placeholder="Task title"
+                        autoFocus
+                      />
+                      <Button
+                        ref={saveButtonRef}
+                        size="sm"
+                        className="w-full h-7 text-xs rounded-md bg-primary/90 hover:bg-primary"
+                        onClick={handleSubTaskSave}
+                      >
+                        Save
+                      </Button>
+                    </div>
+                  ) : (
+                    <div
+                      className={
+                        task.completed || isCompleted
+                          ? "line-through text-muted-foreground"
+                          : ""
                       }
                     >
-                      {getImportanceIcon()}
-                      <span className="ml-0.5">{task.importance}</span>
-                      {!isCompleted && (
-                        <Edit2 className="h-2.5 w-2.5 ml-0.5 opacity-50" />
-                      )}
-                    </Badge>
-                  </div>
-
-                  {/* Category badge */}
-                  {!hideCategory && (
-                    <Badge
-                      variant="outline"
-                      className="inline-flex items-center h-5 text-xs px-1.5 py-0 rounded-full bg-indigo-50/80 text-indigo-600 border-indigo-100 flex-shrink-0"
-                      title="Category"
-                    >
-                      <Tag className="h-2.5 w-2.5 mr-0.5" />
-                      {task.category}
-                    </Badge>
-                  )}
-
-                  {/* Time estimate badge with countdown button */}
-                  {task.time_estimate > 0 && !isEditingTime && (
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <Badge
-                        variant="outline"
-                        className={`inline-flex items-center h-5 text-xs px-1.5 py-0 rounded-full bg-blue-50/80 text-blue-600 border-blue-100 ${
-                          allowTimeEstimate && !isCompleted
-                            ? "cursor-pointer hover:bg-blue-100/70"
-                            : ""
-                        }`}
-                        onClick={() => {
-                          if (allowTimeEstimate && !isCompleted) {
-                            setIsEditingTime(true);
-                          }
-                        }}
-                        title={
-                          allowTimeEstimate && !isCompleted
-                            ? "Click to edit time"
-                            : "Time estimate"
-                        }
-                      >
-                        <Clock
-                          className="h-2.5 w-2.5 mr-0.5"
-                          style={{ color: "#6B7280" }}
-                        />
-                        <span>{task.time_estimate} min</span>
-                        {allowTimeEstimate && !isCompleted && (
-                          <Edit2 className="h-2.5 w-2.5 ml-0.5 opacity-50" />
+                      <h3
+                        className={cn(
+                          "font-medium text-sm leading-tight",
+                          !isCompleted &&
+                            !task.completed &&
+                            "hover:text-primary cursor-pointer hover:underline"
                         )}
-                      </Badge>
-
-                      {!isCompleted && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-5 w-5 rounded-full p-0 flex items-center justify-center bg-blue-50/80 hover:bg-blue-100/70 text-blue-600 border-blue-100"
-                          onClick={handleOpenCountdown}
-                          title="Start countdown timer"
-                        >
-                          <Timer className="h-2.5 w-2.5" />
-                        </Button>
+                        onClick={handleSubTaskEdit}
+                      >
+                        {task.sub_task}
+                      </h3>
+                      {/* Only show main_task if not in a group view */}
+                      {task.main_task && !inGroupView && (
+                        <p className="text-xs text-muted-foreground mt-0.5 leading-tight">
+                          {task.main_task}
+                        </p>
                       )}
                     </div>
                   )}
 
-                  {/* Add time button */}
-                  {!task.time_estimate &&
-                    allowTimeEstimate &&
-                    !isCompleted &&
-                    !isEditingTime && (
+                  {/* Delete button - Only show when not editing */}
+                  {!isEditingTime && !isEditingTitle && (
+                    <button
+                      onClick={() => onDelete(task.id)}
+                      className="absolute right-0 top-0 text-muted-foreground/40 hover:text-destructive transition-colors hover:bg-muted/20 rounded-sm p-0.5"
+                      aria-label="Delete task"
+                      title="Delete task"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Time Estimate Slider - Only show when editing */}
+                {allowTimeEstimate && isEditingTime && (
+                  <div className="mt-2 bg-accent/5 p-3 rounded-md border border-accent/10">
+                    <div className="flex items-center gap-2.5">
+                      <Slider
+                        className="flex-grow"
+                        min={0}
+                        max={120}
+                        step={5}
+                        value={[timeEstimate]}
+                        onValueChange={handleSliderChange}
+                      />
+                      <Input
+                        ref={timeInputRef}
+                        type="number"
+                        min={0}
+                        className="w-16 h-8 text-xs text-center"
+                        value={timeEstimate}
+                        onChange={(e) =>
+                          setTimeEstimate(parseInt(e.target.value) || 0)
+                        }
+                      />
+                    </div>
+                    <div className="flex gap-2 mt-3 justify-end">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-xs px-3"
+                        onClick={() => setIsEditingTime(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="h-7 text-xs px-3"
+                        onClick={handleTimeEstimateSubmit}
+                      >
+                        Save
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Badges row - using inline-flex and nowrap to prevent wrapping */}
+                {(!isEditingTime || !allowTimeEstimate) && !isEditingTitle && (
+                  <div className="inline-flex items-center flex-nowrap overflow-x-auto space-x-1.5 mt-1.5 pb-0.5 max-w-full no-scrollbar -ml-7">
+                    {/* Importance badge */}
+                    <div ref={importanceRef} className="relative flex-shrink-0">
                       <Badge
                         variant="outline"
-                        className="inline-flex items-center h-5 text-xs px-1.5 py-0 rounded-full bg-blue-50/80 text-blue-600 cursor-pointer hover:bg-blue-100/70 border-blue-100 flex-shrink-0"
-                        onClick={() => setIsEditingTime(true)}
-                        title="Add time"
+                        className={`inline-flex items-center h-5 text-xs px-1.5 py-0 rounded-full border-transparent ${
+                          !isCompleted ? "cursor-pointer hover:bg-opacity-80" : ""
+                        } ${getImportanceBadgeClass()}`}
+                        onClick={handleImportanceClick}
+                        title={
+                          isCompleted
+                            ? "Task importance"
+                            : "Click to change importance"
+                        }
                       >
-                        <Clock
-                          className="h-2.5 w-2.5 mr-0.5"
-                          style={{ color: "#6B7280" }}
-                        />
-                        <span>Add time</span>
-                        <Edit2 className="h-2.5 w-2.5 ml-0.5 opacity-50" />
+                        {getImportanceIcon()}
+                        <span className="ml-0.5">{task.importance}</span>
+                        {!isCompleted && (
+                          <Edit2 className="h-2.5 w-2.5 ml-0.5 opacity-50" />
+                        )}
+                      </Badge>
+                    </div>
+
+                    {/* Category badge */}
+                    {!hideCategory && (
+                      <Badge
+                        variant="outline"
+                        className="inline-flex items-center h-5 text-xs px-1.5 py-0 rounded-full bg-indigo-50/80 text-indigo-600 border-indigo-100 flex-shrink-0"
+                        title="Category"
+                      >
+                        <Tag className="h-2.5 w-2.5 mr-0.5" />
+                        {task.category}
                       </Badge>
                     )}
-                </div>
-              )}
+
+                    {/* Time estimate badge with countdown button */}
+                    {task.time_estimate > 0 && !isEditingTime && (
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <Badge
+                          variant="outline"
+                          className={`inline-flex items-center h-5 text-xs px-1.5 py-0 rounded-full bg-blue-50/80 text-blue-600 border-blue-100 ${
+                            allowTimeEstimate && !isCompleted
+                              ? "cursor-pointer hover:bg-blue-100/70"
+                              : ""
+                          }`}
+                          onClick={() => {
+                            if (allowTimeEstimate && !isCompleted) {
+                              setIsEditingTime(true);
+                            }
+                          }}
+                          title={
+                            allowTimeEstimate && !isCompleted
+                              ? "Click to edit time"
+                              : "Time estimate"
+                          }
+                        >
+                          <Clock
+                            className="h-2.5 w-2.5 mr-0.5"
+                            style={{ color: "#6B7280" }}
+                          />
+                          <span>{task.time_estimate} min</span>
+                          {allowTimeEstimate && !isCompleted && (
+                            <Edit2 className="h-2.5 w-2.5 ml-0.5 opacity-50" />
+                          )}
+                        </Badge>
+
+                        {!isCompleted && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-5 w-5 rounded-full p-0 flex items-center justify-center bg-blue-50/80 hover:bg-blue-100/70 text-blue-600 border-blue-100"
+                            onClick={handleOpenCountdown}
+                            title="Start countdown timer"
+                          >
+                            <Timer className="h-2.5 w-2.5" />
+                          </Button>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Add time button */}
+                    {!task.time_estimate &&
+                      allowTimeEstimate &&
+                      !isCompleted &&
+                      !isEditingTime && (
+                        <Badge
+                          variant="outline"
+                          className="inline-flex items-center h-5 text-xs px-1.5 py-0 rounded-full bg-blue-50/80 text-blue-600 cursor-pointer hover:bg-blue-100/70 border-blue-100 flex-shrink-0"
+                          onClick={() => setIsEditingTime(true)}
+                          title="Add time"
+                        >
+                          <Clock
+                            className="h-2.5 w-2.5 mr-0.5"
+                            style={{ color: "#6B7280" }}
+                          />
+                          <span>Add time</span>
+                          <Edit2 className="h-2.5 w-2.5 ml-0.5 opacity-50" />
+                        </Badge>
+                      )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
