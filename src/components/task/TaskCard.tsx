@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Task, ImportanceLevel } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,6 +65,7 @@ const TaskCard = ({
   const timeInputRef = useRef<HTMLInputElement>(null);
   const importanceRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const saveButtonRef = useRef<HTMLButtonElement>(null);
 
   // Focus input when editing time
   useEffect(() => {
@@ -121,7 +123,9 @@ const TaskCard = ({
     const handleClickOutside = (event: MouseEvent) => {
       if (
         titleInputRef.current &&
-        !titleInputRef.current.contains(event.target as Node)
+        !titleInputRef.current.contains(event.target as Node) &&
+        saveButtonRef.current &&
+        !saveButtonRef.current.contains(event.target as Node)
       ) {
         // We can either cancel or save here - choosing to cancel for now
         setIsEditingTitle(false);
@@ -251,7 +255,8 @@ const TaskCard = ({
   const renderImportanceDropdown = () => {
     if (!showImportanceOptions || isCompleted) return null;
 
-    return (
+    // Use createPortal to render the dropdown at the body level
+    return createPortal(
       <div
         id="importance-dropdown"
         className="fixed rounded-md border bg-card shadow-lg p-2 w-32 z-[9999]"
@@ -288,7 +293,8 @@ const TaskCard = ({
           <AlertTriangle className="h-3.5 w-3.5" />
           High
         </Button>
-      </div>
+      </div>,
+      document.body // Target element for the portal
     );
   };
 
@@ -299,7 +305,7 @@ const TaskCard = ({
         onDragStart={handleDragStartInternal}
         onDragEnd={handleDragEndInternal}
         className={cn(
-          "task-card",
+          "task-card relative",
           importanceClass,
           "animate-scale-in mb-3 rounded-md border hover:shadow-sm transition-all",
           !isCompleted && "cursor-grab active:cursor-grabbing",
@@ -355,6 +361,7 @@ const TaskCard = ({
                       autoFocus
                     />
                     <Button
+                      ref={saveButtonRef}
                       size="sm"
                       className="w-full h-7 text-xs rounded-md bg-primary/90 hover:bg-primary"
                       onClick={handleSubTaskSave}
@@ -554,7 +561,6 @@ const TaskCard = ({
         </div>
       </div>
 
-      {/* Render importance dropdown */}
       {renderImportanceDropdown()}
 
       {/* Task Countdown Modal */}

@@ -41,7 +41,7 @@ export function Navbar() {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="border-b bg-background/95 backdrop-blur sticky top-0 z-10">
+    <nav className="border-b bg-white shadow-md sticky top-0 z-50">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <div className="flex items-center space-x-2 md:space-x-6">
           <h1 className="text-lg font-medium">Task Manager</h1>
