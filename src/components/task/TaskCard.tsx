@@ -329,9 +329,9 @@ const TaskCard = ({
                   {...listeners} // Apply listeners ONLY to the handle
                   className={cn(
                       "px-1.5 flex items-center justify-center",
-                      "bg-muted/30 hover:bg-muted/50 transition-colors", // Simple background 
-                      "cursor-grab border-r border-border/50", // Visual separation
-                      // "touch-none" // Temporarily remove touch-none for testing
+                      "bg-muted/30 hover:bg-muted/50 transition-colors",
+                      "cursor-grab border-r border-border/50",
+                      "touch-none"
                   )}
                   aria-label="Drag task"
               >
