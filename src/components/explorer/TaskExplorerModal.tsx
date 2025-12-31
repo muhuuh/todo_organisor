@@ -1,4 +1,5 @@
 import { Task, ImportanceLevel } from "@/types";
+import { sortTasksByOrder } from "@/lib/taskOrder";
 import {
   Dialog,
   DialogContent,
@@ -89,18 +90,17 @@ const TaskExplorerModal = ({
   onToggleCompletion,
 }: TaskExplorerModalProps) => {
   const groupedTasks = groupTasksByBucket(tasks);
-  const bucketOrder = [
-    "Today",
-    "Tomorrow",
-    "This Week",
-    "Short-Term",
-    "Mid-Term",
-    "Long-Term",
-  ];
+  const bucketOrder = ["Today", "Tomorrow", "On Hold"];
 
   // Sort buckets in a logical order
   const sortedBuckets = Object.keys(groupedTasks).sort(
-    (a, b) => bucketOrder.indexOf(a) - bucketOrder.indexOf(b)
+    (a, b) => {
+      const indexA = bucketOrder.indexOf(a);
+      const indexB = bucketOrder.indexOf(b);
+      const safeA = indexA === -1 ? Number.MAX_SAFE_INTEGER : indexA;
+      const safeB = indexB === -1 ? Number.MAX_SAFE_INTEGER : indexB;
+      return safeA - safeB;
+    }
   );
 
   const handleDelete = (id: string) => {
@@ -148,7 +148,7 @@ const TaskExplorerModal = ({
               </div>
 
               <div className="space-y-3 pl-1">
-                {groupedTasks[bucket].map((task) => (
+                {sortTasksByOrder(groupedTasks[bucket]).map((task) => (
                   <div
                     key={task.id}
                     className="bg-background rounded-lg border shadow-sm hover:shadow-md transition-all p-4 relative"

@@ -27,6 +27,9 @@ interface TaskContextType {
     importance: ImportanceLevel
   ) => Promise<void>;
   updateSubTask: (taskId: string, newSubTask: string) => Promise<void>;
+  reorderTasks: (
+    updates: { id: string; bucket: TaskBucketType; sort_order: number }[]
+  ) => Promise<void>;
   fetchCompletedTasks: () => Promise<void>;
   userId: string | null;
 }
@@ -39,6 +42,21 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingCompleted, setIsLoadingCompleted] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+
+  const normalizeBucket = (bucket: string): TaskBucketType => {
+    if (
+      bucket === "Short-Term" ||
+      bucket === "Mid-Term" ||
+      bucket === "Long-Term" ||
+      bucket === "This Week"
+    ) {
+      return "On Hold";
+    }
+    if (bucket !== "On Hold" && bucket !== "Today" && bucket !== "Tomorrow") {
+      return "On Hold";
+    }
+    return bucket as TaskBucketType;
+  };
 
   // Check for authentication and fetch tasks on component mount
   useEffect(() => {
@@ -87,13 +105,18 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
         .select("*")
         .eq("user_id", currentUserId)
         .eq("is_archived", false) // Only fetch non-archived tasks
-        .order("created_at", { ascending: false });
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true });
 
       if (handleSupabaseError(error)) return;
 
       // Double-check to ensure no archived tasks appear in the main view
       const filteredData = data ? data.filter((task) => !task.is_archived) : [];
-      setTasks(filteredData);
+      const normalizedData = filteredData.map((task) => ({
+        ...task,
+        bucket: normalizeBucket(task.bucket),
+      }));
+      setTasks(normalizedData);
     } catch (err) {
       console.error("Error fetching tasks:", err);
       toast.error("Failed to load tasks");
@@ -131,7 +154,12 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
 
       // Ensure we only set completed tasks when we have valid data
       if (data) {
-        setCompletedTasks(data);
+        setCompletedTasks(
+          data.map((task) => ({
+            ...task,
+            bucket: normalizeBucket(task.bucket),
+          }))
+        );
       }
     } catch (err) {
       console.error("Error fetching completed tasks:", err);
@@ -150,11 +178,20 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
     }
 
     try {
+      const bucketTasks = tasks.filter(
+        (task) => task.bucket === taskInput.bucket
+      );
+      const maxSortOrder = bucketTasks.reduce(
+        (max, task) => Math.max(max, task.sort_order ?? 0),
+        0
+      );
+
       const newTask: Omit<Task, "id" | "created_at" | "updated_at"> = {
         ...taskInput,
         user_id: userId,
         is_archived: false,
         completed: false,
+        sort_order: maxSortOrder + 1,
       };
 
       const { data, error } = await supabase
@@ -360,24 +397,37 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
       const task = tasks.find((t) => t.id === taskId);
       if (!task) return;
 
+      const targetBucketTasks = tasks.filter(
+        (t) => t.bucket === bucket && t.id !== taskId
+      );
+      const maxSortOrder = targetBucketTasks.reduce(
+        (max, t) => Math.max(max, t.sort_order ?? 0),
+        0
+      );
+      const nextSortOrder = maxSortOrder + 1;
+
       // Ensure we're only updating the current user's tasks
       if (task.user_id !== userId) {
         toast.error("You can only move your own tasks");
         return;
       }
 
-      const updatedTask = { ...task, bucket };
+      const updatedTask = { ...task, bucket, sort_order: nextSortOrder };
 
       const { error } = await supabase
         .from("tasks")
-        .update({ bucket })
+        .update({ bucket, sort_order: nextSortOrder })
         .eq("id", taskId)
         .eq("user_id", userId);
 
       if (handleSupabaseError(error)) return;
 
       setTasks((prevTasks) =>
-        prevTasks.map((t) => (t.id === taskId ? { ...t, bucket } : t))
+        prevTasks.map((t) =>
+          t.id === taskId
+            ? { ...t, bucket, sort_order: nextSortOrder }
+            : t
+        )
       );
     } catch (err) {
       console.error("Error moving task:", err);
@@ -548,6 +598,41 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const reorderTasks = async (
+    updates: { id: string; bucket: TaskBucketType; sort_order: number }[]
+  ) => {
+    if (!userId) {
+      toast.error("You must be signed in to reorder tasks");
+      return;
+    }
+
+    if (updates.length === 0) return;
+
+    const updatesMap = new Map(
+      updates.map((update) => [update.id, update])
+    );
+
+    setTasks((prevTasks) =>
+      prevTasks.map((task) => {
+        const update = updatesMap.get(task.id);
+        return update ? { ...task, ...update } : task;
+      })
+    );
+
+    const payload = updates.map((update) => ({
+      ...update,
+      user_id: userId,
+    }));
+
+    const { error } = await supabase
+      .from("tasks")
+      .upsert(payload, { onConflict: "id" });
+
+    if (handleSupabaseError(error)) {
+      fetchTasks(userId);
+    }
+  };
+
   const value = {
     tasks,
     completedTasks,
@@ -563,6 +648,7 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
     toggleTaskCompletion,
     updateTaskImportance,
     updateSubTask,
+    reorderTasks,
     fetchCompletedTasks,
     userId,
   };

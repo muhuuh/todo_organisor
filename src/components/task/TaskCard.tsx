@@ -23,7 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import TaskCountdown from "./TaskCountdown";
 import { cn } from "@/lib/utils";
-import { useDraggable } from "@dnd-kit/core";
+import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
 interface TaskCardProps {
@@ -144,23 +144,30 @@ const TaskCard = ({
   const isDisabled = isCompleted || isEditingTitle || isEditingTime;
   // console.log(`Task ${task.id} - isDisabled: ${isDisabled}`); // Add this temporarily for debugging if needed
 
-  // --- dnd-kit Draggable ---
-  const { 
-    attributes, 
-    listeners, 
-    setNodeRef, 
-    transform, 
-    isDragging 
-  } = useDraggable({
-    id: task.id, 
-    data: { task }, 
-    disabled: isDisabled, // Use the calculated disabled state
+  // --- dnd-kit Sortable ---
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: task.id,
+    data: {
+      type: "task",
+      bucket: task.bucket,
+      group: task.main_task || "__ungrouped__",
+    },
+    disabled: isDisabled,
   });
 
-  const style = transform ? {
-    transform: CSS.Translate.toString(transform),
-    zIndex: isDragging ? 100 : undefined, 
-  } : undefined;
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 100 : undefined,
+  };
 
   const handleTimeEstimateSubmit = () => {
     onUpdateTimeEstimate(task.id, timeEstimate);
@@ -326,6 +333,7 @@ const TaskCard = ({
           {/* Simplified Drag Handle - always visible */}
           {!isDisabled && (
               <div 
+                  ref={setActivatorNodeRef}
                   {...listeners} // Apply listeners ONLY to the handle
                   className={cn(
                       "px-1.5 flex items-center justify-center",

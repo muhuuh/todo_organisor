@@ -48,12 +48,9 @@ const formSchema = z.object({
   category: z.string().min(1, { message: "Category is required" }),
   importance: z.enum(["Low", "Medium", "High"]),
   bucket: z.enum([
-    "Short-Term",
-    "Mid-Term",
-    "Long-Term",
+    "On Hold",
     "Today",
     "Tomorrow",
-    "This Week",
   ]),
   // Make time_estimate truly optional with no validation errors when empty
   time_estimate: z
@@ -101,7 +98,7 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
       sub_task: "",
       category: "",
       importance: "Medium" as ImportanceLevel,
-      bucket: "Short-Term" as TaskBucketType,
+      bucket: "On Hold" as TaskBucketType,
       time_estimate: undefined,
     },
     mode: "onSubmit", // Only validate on submit, not on change
@@ -511,12 +508,9 @@ const CreateTaskForm = ({ onSubmit }: CreateTaskFormProps) => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="rounded-lg">
-                        <SelectItem value="Short-Term">Short-Term</SelectItem>
-                        <SelectItem value="Mid-Term">Mid-Term</SelectItem>
-                        <SelectItem value="Long-Term">Long-Term</SelectItem>
+                        <SelectItem value="On Hold">On Hold</SelectItem>
                         <SelectItem value="Today">Today</SelectItem>
                         <SelectItem value="Tomorrow">Tomorrow</SelectItem>
-                        <SelectItem value="This Week">This Week</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
