@@ -7,7 +7,7 @@ export const getTaskGroupKey = (task: Task) =>
 
 const getFallbackOrder = (task: Task) => {
   const createdAt = new Date(task.created_at).getTime();
-  return Number.isNaN(createdAt) ? Number.MAX_SAFE_INTEGER : createdAt;
+  return Number.isNaN(createdAt) ? Number.MIN_SAFE_INTEGER : -createdAt;
 };
 
 export const sortTasksByOrder = (tasks: Task[]) =>

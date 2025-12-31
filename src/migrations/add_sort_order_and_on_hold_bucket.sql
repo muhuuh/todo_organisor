@@ -12,16 +12,6 @@ BEGIN
     END IF;
 END $$;
 
--- Normalize old bucket values into On Hold
-UPDATE tasks
-SET bucket = 'On Hold'
-WHERE bucket IN ('Short-Term', 'Mid-Term', 'Long-Term', 'This Week');
-
--- Update bucket constraint to the new set
-ALTER TABLE tasks DROP CONSTRAINT IF EXISTS tasks_bucket_check;
-ALTER TABLE tasks
-ADD CONSTRAINT tasks_bucket_check CHECK (bucket IN ('On Hold', 'Today', 'Tomorrow'));
-
 -- Backfill sort_order for existing tasks (per user and bucket)
 WITH ordered AS (
     SELECT id,

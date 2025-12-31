@@ -56,6 +56,7 @@ const Index = () => {
     updateTaskImportance,
     updateSubTask,
     reorderTasks,
+    userId,
   } = useTaskContext();
 
   // Calculate dates
@@ -367,11 +368,12 @@ const Index = () => {
 
           <section>
             <h2 className="text-xl font-medium mb-4">Time Visualization</h2>
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
               <TimeVisualization tasks={tasks} />
               <TodayProgressVisualization
                 tasks={tasks}
                 completedTasks={completedTasks}
+                userId={userId}
               />
             </div>
           </section>

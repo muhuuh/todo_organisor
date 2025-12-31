@@ -193,7 +193,7 @@ const TaskBucket = ({
   onToggleCompletion,
   onUpdateImportance,
   onUpdateSubTask,
-  allowTimeEstimate = true,
+  allowTimeEstimate = false,
   showSubtasksOnly = false,
 }: TaskBucketProps) => {
   const [openGroups, setOpenGroups] = useState<{ [key: string]: boolean }>({});

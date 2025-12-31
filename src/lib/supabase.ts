@@ -49,8 +49,7 @@ export const initializeDatabase = async () => {
         - category: text (not null)
         - importance: text (not null, check: importance in ('Low', 'Medium', 'High'))
         - time_estimate: integer
-        - sort_order: integer (default: extract(epoch from now()))
-        - bucket: text (not null, check: bucket in ('On Hold', 'Today', 'Tomorrow'))
+        - bucket: text (not null, check: bucket in ('Short-Term', 'Mid-Term', 'Long-Term', 'This Week', 'Today', 'Tomorrow'))
         - is_archived: boolean (not null, default: false)
         - completed: boolean (not null, default: false)
         - created_at: timestamptz (not null, default: now())
