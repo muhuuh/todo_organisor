@@ -69,14 +69,28 @@ const TodayProgressVisualization = ({
     };
   }, [goalType, userId]);
 
-  const plannedToday = tasks.filter(
-    (task) => task.bucket === "Today" && task.time_estimate
-  );
-  const completedToday = completedTasks.filter((task) => {
-    if (!task.time_estimate || !task.updated_at) return false;
-    if (task.bucket !== "Today") return false;
-    return isSameDay(parseISO(task.updated_at), today);
-  });
+  const plannedToday = [
+    ...tasks.filter((task) => task.bucket === "Today"),
+    ...completedTasks.filter(
+      (task) =>
+        task.bucket === "Today" &&
+        task.completed_at &&
+        isSameDay(parseISO(task.completed_at), today)
+    ),
+  ];
+
+  const completedToday = [
+    ...tasks.filter(
+      (task) =>
+        task.completed &&
+        task.completed_at &&
+        isSameDay(parseISO(task.completed_at), today)
+    ),
+    ...completedTasks.filter(
+      (task) =>
+        task.completed_at && isSameDay(parseISO(task.completed_at), today)
+    ),
+  ];
 
   const getGroupKey = (task: Task) =>
     showSubtasks ? task.sub_task : task.main_task || "Ungrouped";

@@ -20,6 +20,7 @@ export interface Task {
   bucket: TaskBucketType;
   is_archived: boolean;
   completed: boolean; // Whether the sub-task is completed
+  completed_at?: string | null;
   created_at: string;
   updated_at: string;
 }

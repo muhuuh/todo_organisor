@@ -37,11 +37,9 @@ const TimeVisualization = ({ tasks }: TimeVisualizationProps) => {
   const [showSubTasks, setShowSubTasks] = useState(false);
   const [useFixedScale, setUseFixedScale] = useState(true);
 
-  // Filter out any tasks without a bucket (Today/Tomorrow) or time estimate
+  // Filter out any tasks without a bucket (Today/Tomorrow)
   const filteredTasks = tasks.filter(
-    (task) =>
-      (task.bucket === "Today" || task.bucket === "Tomorrow") &&
-      task.time_estimate
+    (task) => task.bucket === "Today" || task.bucket === "Tomorrow"
   );
 
   // If no tasks available, display a message

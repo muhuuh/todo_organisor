@@ -330,12 +330,14 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
       console.log("Archiving task:", id);
 
       // First update the database
+      const completedAt = new Date().toISOString();
       const { error } = await supabase
         .from("tasks")
         .update({
           is_archived: true,
           completed: true,
-          updated_at: new Date().toISOString(),
+          completed_at: completedAt,
+          updated_at: completedAt,
         })
         .eq("id", id)
         .eq("user_id", userId);
@@ -351,7 +353,8 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
         ...task,
         is_archived: true,
         completed: true,
-        updated_at: new Date().toISOString(),
+        completed_at: completedAt,
+        updated_at: completedAt,
       };
 
       // Remove from active tasks list
@@ -389,12 +392,14 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
       console.log("Unarchiving task:", id);
 
       // Update the database
+      const restoredAt = new Date().toISOString();
       const { error } = await supabase
         .from("tasks")
         .update({
           is_archived: false,
           completed: false,
-          updated_at: new Date().toISOString(),
+          completed_at: null,
+          updated_at: restoredAt,
         })
         .eq("id", id)
         .eq("user_id", userId);
@@ -410,7 +415,8 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
         ...task,
         is_archived: false,
         completed: false,
-        updated_at: new Date().toISOString(),
+        completed_at: null,
+        updated_at: restoredAt,
       };
 
       // Remove from completed tasks list
@@ -552,9 +558,14 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
+      const updatedAt = new Date().toISOString();
       const { error } = await supabase
         .from("tasks")
-        .update({ completed: newCompletedStatus })
+        .update({
+          completed: newCompletedStatus,
+          completed_at: newCompletedStatus ? updatedAt : null,
+          updated_at: updatedAt,
+        })
         .eq("id", taskId)
         .eq("user_id", userId);
 
@@ -562,7 +573,14 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
 
       setTasks((prevTasks) =>
         prevTasks.map((t) =>
-          t.id === taskId ? { ...t, completed: newCompletedStatus } : t
+          t.id === taskId
+            ? {
+                ...t,
+                completed: newCompletedStatus,
+                completed_at: newCompletedStatus ? updatedAt : null,
+                updated_at: updatedAt,
+              }
+            : t
         )
       );
 
