@@ -34,8 +34,9 @@ CREATE TABLE IF NOT EXISTS tasks (
   category TEXT NOT NULL,
   importance TEXT NOT NULL CHECK (importance IN ('Low', 'Medium', 'High')),
   time_estimate INTEGER,
-  bucket TEXT NOT NULL CHECK (bucket IN ('Short-Term', 'Mid-Term', 'Long-Term', 'Today', 'Tomorrow', 'This Week')),
+  bucket TEXT NOT NULL CHECK (bucket IN ('Short-Term', 'Mid-Term', 'Long-Term', 'This Week', 'Today', 'Tomorrow')),
   is_archived BOOLEAN NOT NULL DEFAULT FALSE,
+  completed BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

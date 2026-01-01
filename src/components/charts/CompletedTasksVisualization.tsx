@@ -48,10 +48,8 @@ const CompletedTasksVisualization = ({
   const [showSubTasks, setShowSubTasks] = useState(false);
   const [useFixedScale, setUseFixedScale] = useState(true);
 
-  // Filter out tasks without updated_at or time_estimate
-  const filteredTasks = tasks.filter(
-    (task) => task.updated_at && task.time_estimate
-  );
+  // Filter out tasks without updated_at
+  const filteredTasks = tasks.filter((task) => task.updated_at);
 
   // If no tasks available, display a message
   if (filteredTasks.length === 0) {

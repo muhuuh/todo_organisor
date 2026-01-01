@@ -167,8 +167,6 @@ export default function CompletedTasksPage() {
                             inGroupView={true}
                             isCompleted={true}
                             allowTimeEstimate={false}
-                            onDragStart={(e) => {}}
-                            onDragEnd={(e) => {}}
                             onDelete={deleteTask}
                             onArchive={() => {}}
                             onUpdateTimeEstimate={() => {}}

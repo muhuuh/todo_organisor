@@ -49,7 +49,7 @@ export const initializeDatabase = async () => {
         - category: text (not null)
         - importance: text (not null, check: importance in ('Low', 'Medium', 'High'))
         - time_estimate: integer
-        - bucket: text (not null, check: bucket in ('Short-Term', 'Mid-Term', 'Long-Term', 'Today', 'Tomorrow', 'This Week'))
+        - bucket: text (not null, check: bucket in ('Short-Term', 'Mid-Term', 'Long-Term', 'This Week', 'Today', 'Tomorrow'))
         - is_archived: boolean (not null, default: false)
         - completed: boolean (not null, default: false)
         - created_at: timestamptz (not null, default: now())

@@ -36,6 +36,15 @@ export default async function handler(req, res) {
   const { main_task, sub_task, category, importance, bucket, time_estimate } =
     data;
 
+  const serializeBucket = (value) => {
+    if (value === "Today" || value === "Tomorrow") {
+      return value;
+    }
+    return "Short-Term";
+  };
+
+  const normalizedBucket = serializeBucket(bucket);
+
   const { error: insertError } = await supabase.from("tasks").insert([
     {
       user_id: userData.user_id,
@@ -43,7 +52,7 @@ export default async function handler(req, res) {
       sub_task,
       category,
       importance,
-      bucket,
+      bucket: normalizedBucket,
       time_estimate,
     },
   ]);
