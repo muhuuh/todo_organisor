@@ -459,7 +459,7 @@ const TaskCard = ({
                       <Slider
                         className="flex-grow"
                         min={0}
-                        max={120}
+                        max={180}
                         step={5}
                         value={[timeEstimate]}
                         onValueChange={handleSliderChange}

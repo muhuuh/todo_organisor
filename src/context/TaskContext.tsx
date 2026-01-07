@@ -164,13 +164,19 @@ export const TaskProvider = ({ children }: { children: ReactNode }) => {
 
     setIsLoadingCompleted(true);
     try {
-      // Make sure to explicitly get tasks that are both archived and completed
+      // Calculate date 30 days ago
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const thirtyDaysAgoISO = thirtyDaysAgo.toISOString();
+
+      // Make sure to explicitly get tasks that are both archived and completed within the past 30 days
       const { data, error } = await supabase
         .from("tasks")
         .select("*")
         .eq("user_id", userIdToUse)
         .eq("is_archived", true)
         .eq("completed", true)
+        .gte("completed_at", thirtyDaysAgoISO)
         .order("updated_at", { ascending: false });
 
       if (error) {
